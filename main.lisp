@@ -10,24 +10,13 @@
   (eql #\-
        (char f 0)))
 
-(defun get-command-type (f)
-  (when (cli-flag-p f)
-    (char f 1)))
-
-;; (defun parse-args (args)
-;;   (let ((flags (remove-if-not #'cli-flag-p
-;;                               args)))
-;;     (if (> (list-length flags) 1)
-;;         )))
-
 (defun higher (new old)
   (let ((pl (list '|-h| '|-s| '|-p| '|-r|)))
     (< (position old pl)
        (position new pl))))
 
 (defun parse-args (args)
-  (let (;; help scan-tokens parse-errors parse-repr
-             filename option too-many)
+  (let (filename option too-many)
     
     ;; Determine present flags
     (loop for arg in (cdr args) do
@@ -39,37 +28,20 @@
                  (t
                   (setq too-many t)
                   (when (higher arg-s option)
-                    (setq option arg-s)))))
-         ;; (let ((type (get-command-type arg)))
-         ;;   (cond ((null type) (setq filename arg))
-         ;;         ((eql type #\h) (setq help t))
-         ;;         ((eql type #\s) (setq scan-tokens t))
-         ;;         ((eql type #\p) (setq parse-errors t))
-         ;;         ((eql type #\r) (setq parse-repr t))))
-         )
+                    (setq option arg-s))))))
 
-    (when )
+    (cond ((null option)
+           ;; No option was given, show the help
+           (format t "ERROR: No option specified~%~%")
+           (setq option (intern "-h")))
+          ((and (not (eq '|-h| option))
+                (null filename))
+           ;; Command line argument that required file, didn't receive file
+           (format t "ERROR: No file passed.~%~%")
+           (setq option (intern "-h"))))
+
     (when too-many
-      (format t "Too many arguments passed, defaulting to ~a~%" option))
-
-    ;; ;; Decide on which flag to use, deal with too many flags
-    ;; (cond (parse-repr
-    ;;        (setq option '|-r|))
-    ;;       (parse-errors
-    ;;        (setq option '|-p|))
-    ;;       (scan-tokens
-    ;;        (setq option '|-s|))
-    ;;       (help
-    ;;        (setq option '|-h|))
-    ;;       (t
-    ;;        (format t "No options selected.~%")
-    ;;        (setq option '|-h|)))
-
-    ;; ;; Check for too many args
-    ;; (when (< 1 (list-length
-    ;;             (remove-if-not #'identity
-    ;;                            (list help scan-tokens parse-errors parse-repr))))
-    ;;   (format t "Too many arguments passed, defaulting to ~a~%" option))
+      (format t "Too many arguments passed, defaulting to ~a~%~%" option))
 
     (list option filename)))
 
@@ -78,8 +50,11 @@
 
 (defun main (argl)
   (destructuring-bind (option file) (parse-args argl)
-    (if (eq option '|-h|)
-      (output-help))))
+    (case option
+      (|-h| (output-help))
+      (|-s| (format t "Print out all tokens!"))
+      (|-p| (format t "Report if the program compiles!"))
+      (|-r| (format t "Show internal representation!")))))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))
