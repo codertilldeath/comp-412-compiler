@@ -48,22 +48,6 @@
     (build-number-dfa re-state r-state)))
 
 
-;; Pad end of word with spaces?
-;; (defun fill-path (word final-state)
-;;   (with-input-from-string (stream word)
-;;     (let ((state *start-state*))
-;;       (loop for ch = (read-char stream nil)
-;;          while ch do
-;;            (let* ((c (char-code ch))
-;;                   (next-state (aref *table* state c)))
-;;              (if (not (= next-state *error-state*))
-;;                  (setf state next-state)
-;;                  (let ((new-state (make-new-state)))
-;;                    (link-states state c new-state)
-;;                    (setf state new-state)))))
-;;       (fill-end-characters state final-state))))
-
-
 ;; Or just check the next character?
 (defun fill-path (word final-state)
   (with-input-from-string (stream word)
