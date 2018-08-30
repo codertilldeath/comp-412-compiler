@@ -3,7 +3,7 @@
   :build-operation "program-op"
   :build-pathname "412fe"
   :entry-point "412fe:entry"
-  :components ((:file "./scanner/table/table")
-               (:file "./scanner/scanner")
+  :components ((:file "./parser/table")
+               (:file "./parser/scanner")
                (:file "./cli/cli")
                (:file "main")))
