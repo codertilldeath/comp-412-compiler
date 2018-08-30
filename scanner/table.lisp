@@ -1,8 +1,10 @@
 (defpackage 412fe.scanner.table
   (:use :cl)
-  (:export :*parts-of-speech*
-           :*table*
-           :lookup))
+  (:export :lookup
+           :*parts-of-speech*
+           :*start-state*
+           :*valid-terminators*
+           :*table*))
 
 (in-package :412fe.scanner.table)
 
@@ -47,6 +49,17 @@
                  re-state)
     (build-number-dfa re-state r-state)))
 
+
+(defun num-p (c)
+  (char<= #\0 c #\9))
+
+(defun alpha-p (c)
+  (or (char<= #\A c #\Z)
+      (char<= #\a c #\z)))
+
+(defun alphanum-p (c)
+  (or (num-p c)
+      (alpha-p c))) 
 
 (defun build-comments-dfa ()
   (fill-path "//" 'comment)
@@ -183,17 +196,6 @@
   (defun lookup (s)
     (when (< s (car (array-dimensions *parts-of-speech*) ))
       (aref *parts-of-speech* s))))
-
-(defun num-p (c)
-  (char<= #\0 c #\9))
-
-(defun alpha-p (c)
-  (or (char<= #\A c #\Z)
-      (char<= #\a c #\z)))
-
-(defun alphanum-p (c)
-  (or (num-p c)
-      (alpha-p c))) 
 
 ;; (follow "add r1,r2 => r3
 ;; sub r1, r2=>r3")
