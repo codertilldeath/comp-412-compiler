@@ -7,5 +7,4 @@ mult r1,r2 =>r3
 lshift r1, r2 => r3
 rshift r1, r2 => r3
 output 20
-
 nop
