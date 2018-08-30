@@ -48,6 +48,14 @@
     (build-number-dfa re-state r-state)))
 
 
+(defun build-comments-dfa ()
+  (fill-path "//" 'comment)
+  (let ((index (index-of 'comment)))
+    (loop for i from 1 to 127
+       when (not (= i 10))
+       do
+         (link-states index i index))))
+
 ;; Or just check the next character?
 (defun fill-path (word final-state)
   (with-input-from-string (stream word)
@@ -65,16 +73,11 @@
                               (char-code ch)
                               (index-of final-state))))))
 
-(with-input-from-string (stream "hello")
-  (loop for ch = (read-char stream nil)
-     while (peek-char t stream nil) do
-       (print ch)))
-
 (defun make-new-state ()
   (let ((new-state-number *next-state*))
     (setf *table*
           (adjust-array *table*
-                        `(,(incf *next-state*) 256)
+                        `(,(incf *next-state*) 128)
                         :initial-element *error-state*))
     new-state-number))
 
@@ -96,9 +99,9 @@
 (progn
   ;; Parts of speech table
   (defparameter *parts-of-speech*
-    (make-array 13
+    (make-array 14
                 :initial-contents
-                '(memop loadi arithop output nop constant register comma into newline error error-register start)))
+                '(memop loadi arithop output nop constant register comma into newline comment error error-register start)))
   
   ;; Useful variables 
   (defparameter *error-state* (index-of 'error))
@@ -107,8 +110,11 @@
   (defparameter *next-state* (car (array-dimensions *parts-of-speech*)))
 
   ;; Scanner table
-  (defparameter *table* (make-array `(,*next-state* 256)
+  (defparameter *table* (make-array `(,*next-state* 128)
                                     :initial-element *error-state*))
+
+  (defparameter *valid-terminators* (make-array `(,*next-state* 128)
+                                               :initial-element nil))
   
   ;; Leading spaces don't affect anything
   (link-states *start-state*
@@ -140,6 +146,14 @@
   ;; NOP
   (fill-path "nop" 'nop)
 
+  ;; The above terminators are any non-alphanum characters
+  (loop for i from 1 to 127
+     when (not (alphanum-p (code-char i)))
+     do
+       (loop for type from (index-of 'memop) to (index-of 'register) do
+            (setf (aref *valid-terminators* type i)
+                  t)))
+
   ;; COMMA
   (fill-path "," 'comma)
 
@@ -149,7 +163,26 @@
   ;; Newline
    (fill-path "
 " 'newline)
-   )
+
+   ;; In the context of these two, anything is a terminator
+  (loop for i from 1 to 127 do
+       (loop for type from (index-of 'comma) to (index-of 'newline) do
+            (setf (aref *valid-terminators* type i)
+                  t)))
+
+   ;; Comments
+  (build-comments-dfa)
+
+  ;; A comment ignores the rest of the line, so only newline is a terminator
+  (setf (aref *valid-terminators*
+              (index-of 'comment)
+              (char-code #\newline))
+        t)
+   
+
+  (defun lookup (s)
+    (when (< s (car (array-dimensions *parts-of-speech*) ))
+      (aref *parts-of-speech* s))))
 
 (defun num-p (c)
   (char<= #\0 c #\9))
@@ -160,27 +193,29 @@
 
 (defun alphanum-p (c)
   (or (num-p c)
-      (alpha-p c)))
+      (alpha-p c))) 
 
-(defun punctuation-p (type)
-  (or (= type 7)
-      (= type 8)
-      (= type 9)))
+;; (defun valid-terminator (current-termination next-char)
+;;   (let ((type (lookup current-termination)))
+;;     (if (eq type 'comment)
+;;         (char= next-char #\newline)
+;;         (or (null next-char)
+;;             (char= next-char #\space)
+;;             (eq type 'newline)
+;;             (case type
+;;               (comma (alphanum-p next-char))
+;;               (into (alphanum-p next-char))
+;;               (t (not (alphanum-p next-char))))))))
 
 (defun valid-terminator (current-termination next-char)
-  (or (null next-char)
-      (cond ((= current-termination 9) (or (alphanum-p next-char)
-                                           (char= next-char #\newline)
-                                           (char= next-char #\space)))
-            ((punctuation-p current-termination) (or (alphanum-p next-char)
-                                                     (char= next-char #\space)))
-            (t (not (alphanum-p next-char))))))
+  (or (not next-char)
+      (when (< current-termination *start-state*)
+        (aref *valid-terminators* current-termination (char-code next-char)))))
 
 (defun follow-word (stream)
   (let ((state *start-state*))
-    (loop for ch = (when (not (and (< state *start-state*)
-                                   (valid-terminator state
-                                                     (peek-char nil stream nil))))
+    (loop for ch = (when (not (valid-terminator state
+                                                (peek-char nil stream nil)))
                      (read-char stream nil))
        while ch
        do
@@ -212,8 +247,11 @@
        finally
          (format t "~%~a~%" ch))))
 
-(defun lookup (s)
-  (aref *parts-of-speech* s))
+;; (follow "add r1,r2 => r3
+;; sub r1, r2=>r3")
 
-(follow "add r1,r2 => r3
-sub r1, r2=>r3")
+
+;; (with-input-from-string (stream "hello")
+;;   (loop for ch = (read-char stream nil)
+;;      while (peek-char t stream nil) do
+;;        (print ch)))
