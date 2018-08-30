@@ -195,58 +195,6 @@
   (or (num-p c)
       (alpha-p c))) 
 
-;; (defun valid-terminator (current-termination next-char)
-;;   (let ((type (lookup current-termination)))
-;;     (if (eq type 'comment)
-;;         (char= next-char #\newline)
-;;         (or (null next-char)
-;;             (char= next-char #\space)
-;;             (eq type 'newline)
-;;             (case type
-;;               (comma (alphanum-p next-char))
-;;               (into (alphanum-p next-char))
-;;               (t (not (alphanum-p next-char))))))))
-
-(defun valid-terminator (current-termination next-char)
-  (or (not next-char)
-      (when (< current-termination *start-state*)
-        (aref *valid-terminators* current-termination (char-code next-char)))))
-
-(defun follow-word (stream)
-  (let ((state *start-state*))
-    (loop for ch = (when (not (valid-terminator state
-                                                (peek-char nil stream nil)))
-                     (read-char stream nil))
-       while ch
-       do
-         (let ((c (char-code ch)))
-           (setf state
-                 (aref *table* state c))))
-    (lookup state)))
-
-(follow-word (make-string-input-stream "0"))
-
-(defun follow (word)
-  (with-input-from-string (stream word)
-    (loop for ch = (follow-word stream)
-       while (and (not (eq ch 'error))
-                  (not (eq ch 'start)))
-       do
-         (format t "~a~%" ch))))
-
-(defun follow-file (file)
-  (with-open-file (stream file)
-    (loop for ch = (follow-word stream)
-       while (and (not (eq ch 'error))
-                  (not (eq ch 'start)))
-       do
-         (progn
-           (format t "~a " ch)
-           (when (eq ch 'newline)
-             (format t "~%")))
-       finally
-         (format t "~%~a~%" ch))))
-
 ;; (follow "add r1,r2 => r3
 ;; sub r1, r2=>r3")
 
