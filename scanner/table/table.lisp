@@ -114,7 +114,7 @@
   (link-states *start-state*
                (char-code #\space)
                *start-state*)
-
+  
   ;; Lexemes
   ;; Build complicated DFA's, number and register recognition
   (build-register-dfa)
@@ -169,7 +169,10 @@
 
 (defun valid-terminator (current-termination next-char)
   (or (null next-char)
-      (cond ((punctuation-p current-termination) (or (alphanum-p next-char)
+      (cond ((= current-termination 9) (or (alphanum-p next-char)
+                                           (char= next-char #\newline)
+                                           (char= next-char #\space)))
+            ((punctuation-p current-termination) (or (alphanum-p next-char)
                                                      (char= next-char #\space)))
             (t (not (alphanum-p next-char))))))
 
@@ -183,8 +186,7 @@
        do
          (let ((c (char-code ch)))
            (setf state
-                 (aref *table* state c)))
-         )
+                 (aref *table* state c))))
     (lookup state)))
 
 (follow-word (make-string-input-stream "0"))
@@ -206,7 +208,9 @@
          (progn
            (format t "~a " ch)
            (when (eq ch 'newline)
-             (format t "~%"))))))
+             (format t "~%")))
+       finally
+         (format t "~%~a~%" ch))))
 
 (defun lookup (s)
   (aref *parts-of-speech* s))
