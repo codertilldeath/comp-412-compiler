@@ -1,7 +1,7 @@
 (defpackage 412fe
   (:use cl)
-  (:import-from :412fe.scanner
-                :scan)
+  (:import-from :412fe.parser
+                :follow-file)
   (:import-from :412fe.cli
                 :output-help
                 :parse-args)
@@ -12,10 +12,10 @@
 (defun main (argl)
   (destructuring-bind (option file) (parse-args argl)
     (case option
-      (|-h| (output-help))
-      (|-s| (format t "Print out all tokens!"))
-      (|-p| (format t "Report if the program compiles!"))
-      (|-r| (format t "Show internal representation!")))))
+      (:|-h| (output-help))
+      (:|-s| (follow-file file))
+      (:|-p| (format t "Report if the program compiles!"))
+      (:|-r| (format t "Show internal representation!")))))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))

@@ -10,7 +10,7 @@
        (char f 0)))
 
 (defun higher (new old)
-  (let ((pl (list '|-h| '|-s| '|-p| '|-r|)))
+  (let ((pl (list :|-s| :|-p| :|-r| :|-h|)))
     (< (position old pl)
        (position new pl))))
 
@@ -19,7 +19,7 @@
     
     ;; Determine present flags
     (loop for arg in (cdr args) do
-         (let ((arg-s (intern arg)))
+         (let ((arg-s (intern arg "KEYWORD")))
            (cond ((not (cli-flag-p arg))
                   (setq filename arg))
                  ((null option)
@@ -32,8 +32,8 @@
     (cond ((null option)
            ;; No option was given, show the help
            (format t "ERROR: No option specified~%~%")
-           (setq option (intern "-h")))
-          ((and (not (eql '|-h| option))
+           (setq option (intern "-h" "KEYWORD")))
+          ((and (not (eql :|-h| option))
                 (null filename))
            ;; Command line argument that required file, didn't receive file
            (format t "ERROR: No file passed.~%~%")
