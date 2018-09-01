@@ -5,7 +5,8 @@
            :*start-state*
            :*valid-lexemes*
            :*valid-terminators*
-           :*table*))
+           :*table*
+           :get-example))
 
 (in-package :412fe.table)
 
@@ -106,9 +107,9 @@
                          (list symbol)))
                body)))
 
+;; Expand before compiling
 (defun index-of (s)
   (position s *parts-of-speech*))
-
 
 (progn
   ;; Parts of speech table
@@ -204,6 +205,8 @@
     (when (< s (car (array-dimensions *parts-of-speech*) ))
       (aref *parts-of-speech* s))))
 
+
+
 ;; (follow "add r1,r2 => r3
 ;; sub r1, r2=>r3")
 
@@ -212,3 +215,21 @@
 ;;   (loop for ch = (read-char stream nil)
 ;;      while (peek-char t stream nil) do
 ;;        (print ch)))
+
+
+(defun choose-elt (l)
+  (let ((len (length l)))
+    (nth (random len) l)))
+
+(defun get-example (s)
+  (case s
+    (:memop (choose-elt '("load " "store ")))
+    (:loadi "loadI ")
+    (:arithop (choose-elt '("sub " "add " "mult " "lshift " "rshift ")))
+    (:output "output ")
+    (:constant (concatenate 'string (write-to-string (random 100)) " "))
+    (:register (concatenate 'string "r" (write-to-string (random 100)) " "))
+    (:comma ", ")
+    (:into "=> ")
+    (:newline "
+")))
