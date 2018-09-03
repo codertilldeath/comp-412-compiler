@@ -39,7 +39,6 @@
     (with-open-file (stream file)
       (loop for (pos . lex) = (follow-word stream)
          while (not (eq (lookup pos) :start))
-         for grammar-rules = (assoc (lookup pos) *grammar-rules*)
          for linum from 1
          for i = (next-sentence stream
                                 pos lex
@@ -56,7 +55,6 @@
     (with-open-file (stream file)
       (loop for (pos . lex) = (follow-word stream)
          while (not (eq (lookup pos) :start))
-         for grammar-rules = (assoc (lookup pos) *grammar-rules*)
          for linum from 1
          for i = (next-sentence stream
                                 pos lex
@@ -73,7 +71,6 @@
     (with-open-file (stream file)
       (loop for (pos . lex) = (follow-word stream)
          while (not (eq (lookup pos) :start))
-         for grammar-rules = (assoc (lookup pos) *grammar-rules*)
          for linum from 1
          for i = (next-sentence stream
                                 pos lex
