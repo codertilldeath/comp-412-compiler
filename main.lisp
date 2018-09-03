@@ -1,7 +1,8 @@
 (defpackage 412fe
   (:use cl)
   (:import-from :412fe.parser
-                :follow-file)
+                :print-lexemes
+                :parse-file)
   (:import-from :412fe.cli
                 :output-help
                 :parse-args)
@@ -13,8 +14,8 @@
   (destructuring-bind (option file) (parse-args argl)
     (case option
       (:|-h| (output-help))
-      (:|-s| (follow-file file))
-      (:|-p| (format t "Report if the program compiles!"))
+      (:|-s| (print-lexemes file))
+      (:|-p| (parse-file file))
       (:|-r| (format t "Show internal representation!")))))
 
 (defun entry ()

@@ -5,6 +5,8 @@
   :entry-point "412fe:entry"
   :components ((:file "./frontend/table")
                (:file "./frontend/scanner")
+               (:file "./frontend/errors")
+               (:file "./frontend/ir")
                (:file "./frontend/parser")
                (:file "./cli/cli")
                (:file "main")))
