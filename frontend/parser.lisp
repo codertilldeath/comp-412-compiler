@@ -20,24 +20,6 @@
       (format t "{ ~a, \"\\n\" }" (lookup ch))
       (format t "{ ~a, ~S } " (lookup ch) l)))
 
-(defun print-lexemes (file)
-  (let ((linum 1))
-    (with-open-file (stream file)
-      (loop for (pos . lex) = (follow-word stream)
-         while (not (eq (lookup pos)
-                        :start))
-         finally
-           (when (eq :error (lookup pos))
-             (report-lex-error lex))
-         do
-           (progn
-             (format t "~a: " linum)
-             (pprint-lexeme pos lex)
-             (format t "~%")
-             (case (lookup pos)
-               (:error (format t (report-lex-error lex)))
-               (:newline (incf linum))))))))
-
 (defun slurp-sentence (stream lex)
   (cons lex
         (loop for (p . lex) = (follow-word stream)
@@ -48,9 +30,9 @@
 (defun next-sentence (stream pos lex linum)
   (let* ((result (slurp-sentence stream (cons pos lex)))
          (errors (any-errors pos lex result)))
-    (if (null errors)
-        result
-        (format t "On line ~a: ~a" linum errors))))
+    (if errors
+        (format t "On line ~a: ~a" linum errors)
+        result)))
 
 (defun parse-file (file)
   (let ((success t))
@@ -101,3 +83,21 @@
          collect i))
     (when success
       (format t "Successfully parsed file!"))))
+
+(defun print-lexemes (file)
+  (let ((linum 1))
+    (with-open-file (stream file)
+      (loop for (pos . lex) = (follow-word stream)
+         while (not (eq (lookup pos)
+                        :start))
+         finally
+           (when (eq :error (lookup pos))
+             (report-lex-error lex))
+         do
+           (progn
+             (format t "~a: " linum)
+             (pprint-lexeme pos lex)
+             (format t "~%")
+             (case (lookup pos)
+               (:error (format t (report-lex-error lex)))
+               (:newline (incf linum))))))))
