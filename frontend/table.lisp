@@ -138,6 +138,11 @@
   (link-states *start-state*
                (char-code #\space)
                *start-state*)
+
+  ;; Neither do leading tabs
+  (link-states *start-state*
+               (char-code #\tab)
+               *start-state*)
   
   ;; Lexemes
   ;; Build complicated DFA's, number and register recognition
