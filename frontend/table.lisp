@@ -195,11 +195,15 @@
               (char-code #\newline))
         t)
 
-  ;; Errors can end with a space
-  (setf (aref *valid-terminators*
-              (index-of :error)
-              (char-code #\space))
-        t)
+  ;; Errors can end with any non-alphanumeric
+  
+  (loop for i from 1 to 127
+     when (not (alphanum-p (code-char i)))
+     do
+       (setf (aref *valid-terminators*
+                   (index-of :error)
+                   i)
+             t))
 
   (defun lookup (s)
     (when (< s (car (array-dimensions *parts-of-speech*) ))
