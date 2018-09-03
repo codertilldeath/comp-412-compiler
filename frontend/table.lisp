@@ -10,6 +10,26 @@
 
 (in-package :412fe.table)
 
+;; Parts of speech table
+(defparameter *parts-of-speech*
+  (make-array 14
+              :initial-contents
+              '(:memop :loadi :arithop :output :nop :constant :register :comma :into :newline :comment :error :error-register :start)))
+
+;; Useful variables 
+(defparameter *error-state* (index-of :error))
+(defparameter *error-register-state* (index-of :error-register))
+(defparameter *start-state* (index-of :start))
+(defparameter *next-state* (car (array-dimensions *parts-of-speech*)))
+
+;; Scanner table
+(defparameter *table* (make-array `(,*next-state* 128)
+                                  :initial-element *error-state*))
+
+(defparameter *valid-lexemes* (index-of :comment))
+(defparameter *valid-terminators* (make-array `(,*next-state* 128)
+                                              :initial-element nil))
+
 ;; How do I know when a return carriage is legal?
 ;; Shouldn't a scanner not have to worry about grammar strictly?
 ;; What would a scanner for a language like Java look like?
@@ -112,25 +132,6 @@
   (position s *parts-of-speech*))
 
 (progn
-  ;; Parts of speech table
-  (defparameter *parts-of-speech*
-    (make-array 14
-                :initial-contents
-                '(:memop :loadi :arithop :output :nop :constant :register :comma :into :newline :comment :error :error-register :start)))
-  
-  ;; Useful variables 
-  (defparameter *error-state* (index-of :error))
-  (defparameter *error-register-state* (index-of :error-register))
-  (defparameter *start-state* (index-of :start))
-  (defparameter *next-state* (car (array-dimensions *parts-of-speech*)))
-
-  ;; Scanner table
-  (defparameter *table* (make-array `(,*next-state* 128)
-                                    :initial-element *error-state*))
-
-  (defparameter *valid-lexemes* (index-of :comment))
-  (defparameter *valid-terminators* (make-array `(,*next-state* 128)
-                                               :initial-element nil))
   
   ;; Leading spaces don't affect anything
   (link-states *start-state*
