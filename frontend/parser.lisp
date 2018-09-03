@@ -64,4 +64,4 @@
          while (or (null line) (not (eq (lookup (caar line)) :start)))
          collect line))
     (when success
-      (format t "Successfully parsed file!"))))
+      (format t "Successfully parsed file!~%"))))
