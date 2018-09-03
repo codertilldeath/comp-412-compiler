@@ -10,15 +10,15 @@
 
 (in-package :412fe.table)
 
-;; Expand before compiling
-(defun index-of (s)
-  (position s *parts-of-speech*))
-
 ;; Parts of speech table
 (defparameter *parts-of-speech*
   (make-array 14
               :initial-contents
               '(:memop :loadi :arithop :output :nop :constant :register :comma :into :newline :comment :error :error-register :start)))
+
+;; Expand before compiling
+(defun index-of (s)
+  (position s *parts-of-speech*))
 
 ;; Useful variables 
 (defparameter *error-state* (index-of :error))
