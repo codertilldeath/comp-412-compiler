@@ -11,11 +11,12 @@
 (in-package :412fe.parser.errors)
 
 (defparameter *grammar-rules*
-  '((:memop :register :into :register)
-    (:loadi :constant :into :register)
-    (:arithop :register :comma :register :into :register)
-    (:output :constant)
-    (:nop)))
+  '((:memop :register :into :register :newline)
+    (:loadi :constant :into :register :newline)
+    (:arithop :register :comma :register :into :register :newline)
+    (:output :constant :newline)
+    (:nop :newline)
+    (:newline)))
 
 (defun report-lex-error (s)
   (format nil "Unrecognized lexeme \"~a\"~%" s))
@@ -80,5 +81,7 @@
       (mismatched-grammar pos lex result)))
 
 (defun any-errors (pos lex result)
-  (or (lex-error result)
-      (grammar-error pos lex result)))
+  (and result
+       (not (eq (lookup pos) :start))
+       (or (lex-error result)
+           (grammar-error pos lex result))))
