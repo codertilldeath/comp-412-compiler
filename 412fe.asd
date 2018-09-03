@@ -1,3 +1,5 @@
+(require 'asdf)
+
 (asdf:defsystem :412fe
   :serial t
   :build-operation "program-op"
