@@ -10,6 +10,10 @@
 
 (in-package :412fe.table)
 
+;; Expand before compiling
+(defun index-of (s)
+  (position s *parts-of-speech*))
+
 ;; Parts of speech table
 (defparameter *parts-of-speech*
   (make-array 14
@@ -127,9 +131,6 @@
                          (list symbol)))
                body)))
 
-;; Expand before compiling
-(defun index-of (s)
-  (position s *parts-of-speech*))
 
 (progn
   
