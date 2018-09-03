@@ -25,6 +25,8 @@
         (loop for (p . lex) = (follow-word stream)
            while (not (eq (lookup p)
                           :newline))
+           when (not (eq (lookup p)
+                         :comment))
            collect (cons p lex))))
 
 (defun next-sentence (stream pos lex linum)
