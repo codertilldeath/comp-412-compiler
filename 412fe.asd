@@ -4,6 +4,7 @@
   :serial t
   :build-operation "program-op"
   :entry-point "412fe:entry"
+  :depends-on ("alexandria")
   :components ((:file "./frontend/table")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
