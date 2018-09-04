@@ -1,6 +1,6 @@
 (require 'asdf)
 
-(asdf:defsystem :412fe
+(asdf:defsystem :412fe-superspeed
   :serial t
   :build-operation "program-op"
   :build-pathname "../build/412fe"
