@@ -1,2 +1,0 @@
-loadI add,sub=> 20
-r1 => 20,mult
