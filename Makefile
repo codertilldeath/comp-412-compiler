@@ -7,11 +7,12 @@ all: quicklisp
 		--load ./src/superspeed.asd \
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(asdf:disable-output-translations)' \
-		--eval '(asdf:load-system :412fe)' \
-		--eval '(asdf:make :412fe)'
+		--eval '(asdf:load-system :412fe-superspeed)' \
+		--eval '(asdf:make :412fe-superspeed)'
 
 clean:
 	rm -r build
+	rm -r **/*.fasl
 
 quicklisp:
 	mkdir build
