@@ -7,8 +7,8 @@ binary: build/412fe
 
 # Remove binaries and fasl compiled files
 clean:
-	rm build/412fe 
-	rm -r **/*.fasl
+	rm build/412fe
+	find . -name "*.fasl" -type f -delete
 
 # Remove everything, including libraries
 cleanall: clean
