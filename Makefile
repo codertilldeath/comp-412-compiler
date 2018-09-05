@@ -1,7 +1,7 @@
 EXE = sbcl
 FLAGS = --no-userinit --no-sysinit --non-interactive
 
-all: quicklisp binary
+all: alexandria binary
 
 binary: build/412fe
 
@@ -14,6 +14,8 @@ clean:
 cleanall: clean
 	rm -r build
 
+alexandria: build/quicklisp/dists/quicklisp/software/alexandria-20170830-git
+
 quicklisp: build/quicklisp/setup.lisp
 
 build/412fe:
@@ -23,7 +25,14 @@ build/412fe:
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(asdf:disable-output-translations)' \
 		--eval '(asdf:load-system :412fe-superspeed)' \
-		--eval '(asdf:make :412fe-superspeed)'
+		--eval '(asdf:make :412fe-superspeed)' \
+		--eval '(quit)'
+
+build/quicklisp/dists/quicklisp/software/alexandria-20170830-git: quicklisp
+	$(EXE) $(FLAGS) \
+		--load ./build/quicklisp/setup.lisp \
+		--eval '(ql:quickload :alexandria)' \
+		--eval '(quit)'
 
 build/quicklisp/setup.lisp:
 	mkdir build
