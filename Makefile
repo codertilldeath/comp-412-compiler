@@ -34,10 +34,12 @@ build/quicklisp/dists/quicklisp/software/alexandria-20170830-git: quicklisp
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(quit)'
 
-build/quicklisp/setup.lisp:
+build/quicklisp/quicklisp.lisp:
 	mkdir build
 	mkdir build/quicklisp
 	curl -o build/quicklisp/quicklisp.lisp http://beta.quicklisp.org/quicklisp.lisp
+
+build/quicklisp/setup.lisp: build/quicklisp/quicklisp.lisp
 	$(EXE) $(FLAGS) \
 		--load ./build/quicklisp/quicklisp.lisp \
 		--eval '(quicklisp-quickstart:install :path "./build/quicklisp")' \
