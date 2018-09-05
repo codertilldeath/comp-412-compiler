@@ -1,7 +1,22 @@
 EXE = sbcl
 FLAGS = --no-userinit --no-sysinit --non-interactive
 
-all: quicklisp
+all: quicklisp binary
+
+binary: build/412fe
+
+# Remove binaries and fasl compiled files
+clean:
+	rm build/412fe 
+	rm -r **/*.fasl
+
+# Remove everything, including libraries
+cleanall: clean
+	rm -r build
+
+quicklisp: build/quicklisp/setup.lisp
+
+build/412fe:
 	$(EXE) $(FLAGS) \
 		--load ./build/quicklisp/setup.lisp \
 		--load ./src/412fe-superspeed.asd \
@@ -9,12 +24,6 @@ all: quicklisp
 		--eval '(asdf:disable-output-translations)' \
 		--eval '(asdf:load-system :412fe-superspeed)' \
 		--eval '(asdf:make :412fe-superspeed)'
-
-clean:
-	rm -r build
-	rm -r **/*.fasl
-
-quicklisp: build/quicklisp/setup.lisp
 
 build/quicklisp/setup.lisp:
 	mkdir build
