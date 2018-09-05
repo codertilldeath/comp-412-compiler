@@ -4,7 +4,7 @@ FLAGS = --no-userinit --no-sysinit --non-interactive
 all: quicklisp
 	$(EXE) $(FLAGS) \
 		--load ./build/quicklisp/setup.lisp \
-		--load ./src/superspeed.asd \
+		--load ./src/412fe-superspeed.asd \
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(asdf:disable-output-translations)' \
 		--eval '(asdf:load-system :412fe-superspeed)' \
@@ -14,7 +14,9 @@ clean:
 	rm -r build
 	rm -r **/*.fasl
 
-quicklisp:
+quicklisp: build/quicklisp/setup.lisp
+
+build/quicklisp/setup.lisp:
 	mkdir build
 	mkdir build/quicklisp
 	curl -o build/quicklisp/quicklisp.lisp http://beta.quicklisp.org/quicklisp.lisp

@@ -14,7 +14,9 @@
 (defparameter *parts-of-speech*
   (make-array 14
               :initial-contents
-              '(:memop :loadi :arithop :output :nop :constant :register :comma :into :newline :comment :error :error-register :start)))
+              '(:memop :loadi :arithop :output :nop :constant :register :comma :into :newline :comment :error :error-register :start)
+              :element-type 'symbol
+              :adjustable nil :displaced-to nil :fill-pointer nil))
 
 ;; Expand before compiling
 (defun index-of (s)
@@ -27,9 +29,10 @@
 (defparameter *next-state* (car (array-dimensions *parts-of-speech*)))
 
 ;; Scanner table
-(defparameter *table* (make-array `(,*next-state* 128)
-                                  :initial-element *error-state*))
-
+(defparameter *table* (make-array '(44 128)
+                                  :initial-element *error-state*
+                                  :element-type 'fixnum
+                                  :adjustable nil :displaced-to nil :fill-pointer nil))
 (defparameter *valid-lexemes* (index-of :comment))
 (defparameter *valid-terminators* (make-array `(,*next-state* 128)
                                               :initial-element nil))
@@ -112,12 +115,11 @@
                               (char-code ch)
                               (index-of final-state))))))
 
+(type-of *table*)
+
 (defun make-new-state ()
   (let ((new-state-number *next-state*))
-    (setf *table*
-          (adjust-array *table*
-                        `(,(incf *next-state*) 128)
-                        :initial-element *error-state*))
+    (incf *next-state*)
     new-state-number))
 
 (defun link-states (initial-state char next-state)
@@ -244,3 +246,4 @@
     (:into "=> ")
     (:newline "
 ")))
+

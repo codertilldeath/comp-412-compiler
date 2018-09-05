@@ -1,5 +1,5 @@
 (defpackage :412fe.parser
-  (:use :cl)
+  (:use :cl :alexandria)
   (:import-from :412fe.table
                 :lookup)
   (:import-from :412fe.scanner
@@ -27,9 +27,6 @@
       (loop for (pos . lex) = (follow-word stream)
          while (not (eq (lookup pos)
                         :start))
-         finally
-           (when (eq :error (lookup pos))
-             (report-lex-error lex))
          do
            (progn
              (format t "~a: " linum)
