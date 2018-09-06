@@ -45,4 +45,16 @@
     (list option filename)))
 
 (defun output-help ()
-  (format t "This is the help message!~%"))
+  (format t "COMP 412, Fall 2018 Front End (lab 1)
+Command Syntax:
+	./412fe [flags] filename
+
+Required arguments:
+	filename  is the pathname (absolute or relative) to the input file
+
+Optional flags:
+	-h	 prints this message
+	-s	 prints tokens in token stream
+	-p	 invokes parser and reports on success or failure
+	-r	 prints human readable version of parser's IR
+"))
