@@ -1,5 +1,7 @@
 load r1 => r2
-store r1 =>r2
+
+store r1 =>r2 // This is another comment
+// This is a comment
 loadI 123=>r2
 add r1,r2=>r3
 sub r1, r2=> r3

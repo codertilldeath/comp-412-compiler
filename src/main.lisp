@@ -2,7 +2,8 @@
   (:use cl)
   (:import-from :412fe.parser
                 :print-lexemes
-                :parse-file)
+                :parse-file
+                :print-ir)
   (:import-from :412fe.cli
                 :output-help
                 :parse-args)
@@ -16,7 +17,7 @@
       (:|-h| (output-help))
       (:|-s| (print-lexemes file))
       (:|-p| (parse-file file))
-      (:|-r| (format t "Show internal representation!")))))
+      (:|-r| (print-ir file)))))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))

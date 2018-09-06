@@ -9,8 +9,13 @@
                 :report-lex-error
                 :report-eof-error
                 :report-incorrect-word)
-  (:export :print-lexemes
-           :parse-file))
+  (:import-from :412fe.ir
+   :make-internal
+   :pprint-ir)
+  (:export
+   :print-lexemes
+   :parse-file
+   :print-ir))
 
 (in-package :412fe.parser)
 
@@ -50,12 +55,11 @@
          )
     (if errors
         (format t "On line ~a: ~a" linum errors)
-     result))
+        result))
 )
 
 (defun parse-file (file)
-  (let ((success t)
-        count)
+  (let ((success t))
     (with-open-file (stream file)
       (loop for linum fixnum from 1
             for line = (next-sentence stream linum)
@@ -64,8 +68,27 @@
             while (or (null line)
                       (not (eq (lookup (caar line))
                                :start)))
-            collect line
+            when (not (eq (lookup (caar line))
+                          :newline))
+              collect (make-internal line)
             finally
-               (setf count linum)))
-    (when success
-      (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count))))
+               (when success
+                 (format t "Successfully parsed file! ~a ILOC commands parsed.~%" linum))))))
+
+;; Print the ir
+(defun print-ir (file)
+  (let ((success t))
+    (with-open-file (stream file)
+      (loop for linum fixnum from 1
+            for line = (next-sentence stream linum)
+            when (null line)
+              do (setf success nil)
+            while (or (null line)
+                      (not (eq (lookup (caar line))
+                               :start)))
+            when (not (eq (lookup (caar line))
+                          :newline))
+            do (pprint-ir (make-internal line))
+            finally
+               (when success
+                 (format t "Successfully parsed file! ~a ILOC commands parsed.~%" linum))))))
