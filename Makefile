@@ -5,7 +5,7 @@ BUILDDIR = ./build
 QL = $(BUILDDIR)/quicklisp
 QLSOFT = $(QL)/dists/quicklisp/software
 
-all: alexandria binary
+all: binary
 
 binary: $(BUILDDIR)/412fe
 
@@ -22,7 +22,7 @@ alexandria: $(QLSOFT)/alexandria-20170830-git
 
 quicklisp: $(QL)/setup.lisp
 
-$(BUILDDIR)/412fe:
+$(BUILDDIR)/412fe: alexandria
 	$(EXE) $(FLAGS) \
 		--load ./build/quicklisp/setup.lisp \
 		--load ./src/412fe-superspeed.asd \
