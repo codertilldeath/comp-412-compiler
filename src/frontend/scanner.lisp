@@ -50,9 +50,12 @@
   (let ((state *start-state*)
         (fstr (make-array '(0)
                           :element-type 'character :fill-pointer 0 :adjustable t)))
-    (loop for ch = (when (not (valid-terminator state
-                                                (safe-char (peek-char nil stream nil))))
-                     (safe-char (read-char stream nil)))
+    (loop for ch = (let* ((char (read-char stream nil))
+                          (char-s (safe-char char)))
+                     (if (not (valid-terminator state char-s))
+                         char-s
+                         (unless (null char)
+                           (unread-char char stream))))
           while ch
           do
              (let ((c (char-code ch)))
