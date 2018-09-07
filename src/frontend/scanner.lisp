@@ -27,7 +27,7 @@
          while ch
          do
            (let ((c (char-code ch)))
-             (unless (member ch '(#\space #\tab))
+             (unless (member ch '(#\space #\tab #\return))
                (format s "~a" ch))
              (setf state
                    (aref *table* state c)))))
