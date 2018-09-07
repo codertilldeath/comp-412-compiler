@@ -14,7 +14,10 @@
 (defparameter *parts-of-speech*
   (make-array 14
               :initial-contents
-              '(:memop :loadi :arithop :output :nop :constant :register :comma :into :newline :comment :error :error-register :start)
+              '(:memop :loadi :arithop :output :nop
+                :constant :register :comma :into :newline :comment
+                :error :error-register
+                :start)
               :element-type 'symbol
               :adjustable nil :displaced-to nil :fill-pointer nil))
 
@@ -76,24 +79,22 @@
        do
          (link-states index i index))))
 
-;; Or just check the next character?
 (defun fill-path (word final-state)
   (with-input-from-string (stream word)
     (let ((state *start-state*))
       (loop for ch = (read-char stream nil)
-         while (peek-char nil stream nil) do
-           (let* ((c (char-code ch))
-                  (next-state (aref *table* state c)))
-             (if (not (= next-state *error-state*))
-                 (setf state next-state)
-                 (let ((new-state (make-new-state)))
-                   (link-states state c new-state)
-                   (setf state new-state))))
-         finally (link-states state
-                              (char-code ch)
-                              (index-of final-state))))))
+            while (peek-char nil stream nil)
+            do (let* ((c (char-code ch))
+                      (next-state (aref *table* state c)))
+                 (if (not (= next-state *error-state*))
+                     (setf state next-state)
+                     (let ((new-state (make-new-state)))
+                       (link-states state c new-state)
+                       (setf state new-state))))
+            finally (link-states state
+                                 (char-code ch)
+                                 (index-of final-state))))))
 
-(type-of *table*)
 
 (defun make-new-state ()
   (let ((new-state-number *next-state*))
@@ -103,14 +104,6 @@
 (defun link-states (initial-state char next-state)
   (setf (aref *table* initial-state char)
         next-state))
-
-(defmacro append-symbol (symbol &rest body)
-  `(progn
-     ,@(mapcar (lambda (x)
-                 (append x
-                         (list symbol)))
-               body)))
-
 
 (progn
   
