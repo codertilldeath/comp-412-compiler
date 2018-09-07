@@ -19,6 +19,23 @@
 
 (in-package :412fe.parser)
 
+;; Helper funs
+(defun empty-line? (line)
+  (eq (lookup (caar line))
+      :newline))
+
+(defun eof? (line)
+  (eq (lookup (caar line))
+      :start))
+
+(defun comment? (p)
+  (eq (lookup p)
+      :comment))
+
+(defun eof-char? (p)
+  (eq (lookup pos)
+      :start))
+
 ;; Print the lexemes and parts of speech and line numbers
 (defun pprint-lexeme (ch l)
   (if (string= l "
@@ -30,8 +47,7 @@
   (let ((linum 1))
     (with-open-file (stream file)
       (loop for (pos . lex) = (follow-word stream)
-         while (not (eq (lookup pos)
-                        :start))
+         while (not (eof-char? pos))
          do
            (progn
              (format t "~a: " linum)
@@ -42,12 +58,12 @@
                (:newline (incf linum))))))))
 
 ;; Report whether parsing was successful
+
 (defun slurp-sentence (stream)
   (loop for (p . lex) = (follow-word stream)
-     when (not (eq (lookup p)
-                   :comment))
+     when (not (comment? p))
      collect (cons p lex)
-     while (not (member (lookup p) '(:start :newline)))))
+        while (not (member (lookup p) '(:start :newline)))))
 
 (defun parse-file (file)
   (let ((success t)
@@ -55,15 +71,13 @@
     (with-open-file (stream file)
       (loop for linum fixnum from 1
             for line = (slurp-sentence stream)
-            while (not (eq (lookup (caar line))
-                           :start))
+            while (not (eof? line))
             for errors = (any-errors (caar line) (cdar line) line)
             if errors
               do
                  (format t "On line ~a: ~a" linum errors)
                  (setf success nil)
-            else if (not (eq (lookup (caar line))
-                             :newline))
+            else if (not (empty-line? line))
                    collect (make-internal line)
                    and do (incf count)
             finally
@@ -77,15 +91,13 @@
     (with-open-file (stream file)
       (loop for linum fixnum from 1
             for line = (slurp-sentence stream)
-            while (not (eq (lookup (caar line))
-                           :start))
+            while (not (eof? line))
             for errors = (any-errors (caar line) (cdar line) line)
             if errors
               do
                  (format t "On line ~a: ~a" linum errors)
                  (setf success nil)
-            else if (not (eq (lookup (caar line))
-                             :newline))
+            else if (not (empty-line? line))
                    do (incf count)
                       (pprint-ir (make-internal line))
             finally
