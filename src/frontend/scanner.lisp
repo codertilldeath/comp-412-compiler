@@ -48,7 +48,7 @@
   (declare ((simple-array fixnum (129)) *map-to*)
            ((simple-array fixnum (44 26)) *table-min*))
   (let ((state *start-state*)
-        (fstr (make-array '(0)
+        (fstr (make-array '(10)
                           :element-type 'character :fill-pointer 0 :adjustable t)))
     (loop for ch = (let* ((char (read-char stream nil))
                           (char-s (safe-char char)))
