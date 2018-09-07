@@ -49,33 +49,6 @@
      collect (cons p lex)
      while (not (member (lookup p) '(:start :newline)))))
 
-(defun next-sentence (stream linum)
-  (let* ((result (slurp-sentence stream))
-         (errors (any-errors (caar result) (cdar result) result))
-         )
-    (if errors
-        (format t "On line ~a: ~a" linum errors)
-        result))
-)
-
-;; (defun parse-file (file)
-;;   (let ((success t))
-;;     (with-open-file (stream file)
-;;       (loop for linum fixnum from 1
-;;             for line = (next-sentence stream linum)
-;;             when (null line)
-;;               do (setf success nil)
-;;             while (or (null line)
-;;                       (not (eq (lookup (caar line))
-;;                                :start)))
-;;             when (and line
-;;                       (not (eq (lookup (caar line))
-;;                                :newline)))
-;;               collect (make-internal line)
-;;             finally
-;;                (when success
-;;                  (format t "Successfully parsed file! ~a ILOC commands parsed.~%" linum))))))
-
 (defun parse-file (file)
   (let ((success t)
         (count 0))
