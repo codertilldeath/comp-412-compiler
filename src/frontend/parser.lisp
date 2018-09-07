@@ -68,8 +68,9 @@
             while (or (null line)
                       (not (eq (lookup (caar line))
                                :start)))
-            when (not (eq (lookup (caar line))
-                          :newline))
+            when (and line
+                      (not (eq (lookup (caar line))
+                               :newline)))
               collect (make-internal line)
             finally
                (when success
@@ -86,8 +87,9 @@
             while (or (null line)
                       (not (eq (lookup (caar line))
                                :start)))
-            when (not (eq (lookup (caar line))
-                          :newline))
+            when (and line
+                      (not (eq (lookup (caar line))
+                               :newline)))
             do (pprint-ir (make-internal line))
             finally
                (when success
