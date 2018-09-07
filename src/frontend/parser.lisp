@@ -56,9 +56,10 @@
 ;; Report whether parsing was successful
 
 (defun slurp-sentence (stream)
-  (loop for (p . lex) = (follow-word stream)
-     when (not (comment? p))
-     collect (cons p lex)
+  (loop for lex = (follow-word stream)
+        for p = (car lex)
+        when (not (comment? p))
+          collect lex
         while (not (or (= p 9)
                        (= p 13)))))
 
