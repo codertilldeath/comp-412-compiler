@@ -66,13 +66,16 @@
                       *grammar-rules*))
         grammar-expected
         grammar-got)
-    (loop for (pos . lex) in result
-       for part in rules
-       while (null grammar-expected)
-       do
-         (when (not (eq (lookup pos) part))
-           (setf grammar-expected part)
-           (setf grammar-got (lookup pos))))
+    (loop for part in rules
+          for remaining = result then (cdr remaining)
+          for (pos . lex) = (car remaining)
+          while (null grammar-expected)
+          do
+             (when (and (not (eq (lookup pos) part))
+                        (not (and (eq (lookup pos) :start)
+                                  (eq part :newline))))
+               (setf grammar-expected part)
+               (setf grammar-got (lookup pos))))
     (when grammar-expected
       (report-incorrect-word grammar-expected grammar-got))))
 
