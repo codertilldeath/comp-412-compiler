@@ -21,19 +21,22 @@
 
 ;; Helper funs
 (defun empty-line? (line)
-  (= (caar line) 9))
+  (= (the fixnum (caar line)) 9))
 
 (defun eof? (line)
-  (= (caar line) 13))
+  (= (the fixnum (caar line)) 13))
 
 (defun comment? (p)
+  (declare (fixnum p))
   (= p 10))
 
 (defun eof-char? (p)
+  (declare (fixnum p))
   (= p 13))
 
 ;; Print the lexemes and parts of speech and line numbers
 (defun pprint-lexeme (ch l)
+  (declare ((vector character *) l))
   (if (string= l "
 ")
       (format t "{ ~a, \"\\n\" }" (lookup ch))
@@ -41,6 +44,7 @@
 
 (defun print-lexemes (file)
   (let ((linum 1))
+    (declare (fixnum linum))
     (with-open-file (stream file)
       (loop for (pos . lex) = (follow-word stream)
          while (not (eof-char? pos))
@@ -66,6 +70,7 @@
 (defun parse-file (file)
   (let ((success t)
         (count 0))
+    (declare (fixnum count))
     (with-open-file (stream file)
       (loop for linum fixnum from 1
             for line = (slurp-sentence stream)
@@ -86,6 +91,7 @@
 (defun print-ir (file)
   (let ((success t)
         (count 0))
+    (declare (fixnum count))
     (with-open-file (stream file)
       (loop for linum fixnum from 1
             for line = (slurp-sentence stream)

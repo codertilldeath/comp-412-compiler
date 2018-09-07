@@ -12,6 +12,9 @@
 (in-package :412fe.scanner)
 
 (defun valid-terminator (current-termination next-char)
+  (declare ((simple-array t (44 129)) *valid-terminators*)
+           (fixnum current-termination)
+           (fixnum *start-state*))
   (or (not next-char)
       (when (< current-termination *start-state*)
         (aref *valid-terminators* current-termination (char-code next-char)))))
@@ -22,6 +25,7 @@
     (code-char 128)))
 
 (defun follow-word (stream)
+  (declare ((simple-array fixnum (44 129)) *table*))
   (let ((state *start-state*)
         (fstr (make-array '(0) :element-type 'character
                           :fill-pointer 0 :adjustable t)))
