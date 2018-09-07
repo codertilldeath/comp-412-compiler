@@ -26,24 +26,6 @@
     i
     (code-char 128)))
 
-;; (defun follow-word (stream)
-;;   (let ((state *start-state*)
-;;         (fstr (make-array '(0) :element-type 'character
-;;                           :fill-pointer 0 :adjustable t)))
-;;     (with-output-to-string (s fstr)
-;;       (loop for ch = (when (not (valid-terminator state
-;;                                                   (safe-char (peek-char nil stream nil))))
-;;                        (safe-char (read-char stream nil)))
-;;          while ch
-;;          do
-;;             (let ((c (char-code ch)))
-;;               (unless (eq ch #\return)
-;;                 (unless (member ch '(#\space #\tab))
-;;                   (format s "~a" ch))
-;;                 (setf state
-;;                       (aref *table* state c))))))
-;;     (cons state fstr)))
-
 (defun follow-word (stream)
   (declare ((simple-array fixnum (129)) *map-to*)
            ((simple-array fixnum (44 26)) *table-min*))
