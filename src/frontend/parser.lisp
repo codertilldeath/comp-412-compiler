@@ -21,16 +21,16 @@
 
 ;; Helper funs
 (defun empty-line? (line)
-  (eq (caar line) 9))
+  (= (caar line) 9))
 
 (defun eof? (line)
-  (eq (caar line) 13))
+  (= (caar line) 13))
 
 (defun comment? (p)
-  (eq p 10))
+  (= p 10))
 
 (defun eof-char? (p)
-  (eq p 13))
+  (= p 13))
 
 ;; Print the lexemes and parts of speech and line numbers
 (defun pprint-lexeme (ch l)
