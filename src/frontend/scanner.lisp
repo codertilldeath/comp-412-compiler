@@ -59,8 +59,10 @@
           while ch
           do
              (let ((c (char-code ch)))
-               (unless (eq ch #\return)
-                 (unless (member ch '(#\space #\tab))
+               ;; #\return
+               (unless (= c 13)
+                 (unless (or (= c 32) ; Space
+                             (= c 9)) ; Tab
                    (vector-push-extend ch fstr))
                  (setf state
                        (aref *table-min*

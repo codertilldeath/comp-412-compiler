@@ -23,6 +23,7 @@
 
 ;; Expand before compiling
 (defun index-of (s)
+  (declare ((simple-array symbol (14)) *parts-of-speech*))
   (position s *parts-of-speech*))
 
 ;; Useful variables 
