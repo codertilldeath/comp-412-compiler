@@ -7,6 +7,7 @@
   :entry-point "412fe:entry"
   :depends-on ("alexandria")
   :components ((:file "./frontend/table")
+               (:file "./frontend/table-init")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
                (:file "./frontend/ir")

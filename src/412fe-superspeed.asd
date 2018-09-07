@@ -12,6 +12,7 @@
                                          (speed 3)))
                     (funcall next))
   :components ((:file "./frontend/table")
+               (:file "./frontend/table-init")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
                (:file "./frontend/ir")
