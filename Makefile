@@ -7,10 +7,11 @@ QLSOFT = $(QL)/dists/quicklisp/software
 
 all: binary
 
-binary: $(BUILDDIR)/412fe
+binary: $(BUILDDIR)/412fe $(BUILDDIR)/debug
 
 # Remove binaries and fasl compiled files
 clean:
+	rm build/debug
 	rm build/412fe
 	find . -name "*.fasl" -type f -delete
 
@@ -21,6 +22,17 @@ cleanall: clean
 alexandria: $(QLSOFT)/alexandria-20170830-git
 
 quicklisp: $(QL)/setup.lisp
+
+# Make executable with full debug support and slower execution time
+$(BUILDDIR)/debug: alexandria
+	$(EXE) $(FLAGS) \
+		--load ./build/quicklisp/setup.lisp \
+		--load ./src/412fe.asd \
+		--eval '(ql:quickload :alexandria)' \
+		--eval '(asdf:disable-output-translations)' \
+		--eval '(asdf:load-system :412fe)' \
+		--eval '(asdf:make :412fe)' \
+		--eval '(quit)'
 
 $(BUILDDIR)/412fe: alexandria
 	$(EXE) $(FLAGS) \
