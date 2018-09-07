@@ -1,2 +1,9 @@
 load 10 => r2
 r2 r3 => r4
+loadI r1 => r2
+add r1 r2 => r3
+sub r1, r3, r4
+mult r1, r3 r4
+nop 3
+output r3
+load r => r3
