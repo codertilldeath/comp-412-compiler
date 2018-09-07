@@ -37,28 +37,6 @@
 (defparameter *valid-terminators* (make-array `(,*next-state* 128)
                                               :initial-element nil))
 
-;; How do I know when a return carriage is legal?
-;; Shouldn't a scanner not have to worry about grammar strictly?
-;; What would a scanner for a language like Java look like?
-;; The terminating character at the end is context sensitive right?
-;; One way I can see that this can be avoided is to make these terminating characters parts of speech.
-;; Is this correct?
-;; (Probably I have to add newline as a new part of speech. But then how do I denote the end of a word?)
-;; (It seems ridiculous to have a space at the end of each line before a newline)
-;; (Maybe some hackery needs to be employed)
-(defun fill-end-characters (state final)
-  (link-states state
-               (char-code #\space)
-               (index-of final))
-  (link-states state
-               (char-code #\linefeed)
-               (index-of final)))
-
-;; Lenient number. [0-9]+
-;; Q: Lenient number approved for registers. But what about constants?
-;; (Posted)
-;; Maybe have it where this uses an intermediate state
-;; which makes the transition after a space is scanned
 (defun build-number-dfa (start-state success-state)
   (loop for i from 48 to 57 do
        (progn
