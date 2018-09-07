@@ -23,11 +23,12 @@
 
 (defun str->int (s)
   (let ((acc 0))
+    (declare (fixnum acc))
     (with-input-from-string (stream s)
       (loop for c = (read-char stream nil)
             while c
             for n = (chr->int c)
-            do (setf acc (+ (* acc 10) n))))
+            do (setf acc (+ (the fixnum (* acc 10)) (the fixnum n)))))
     acc))
 
 (defun register->int (r)
