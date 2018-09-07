@@ -32,12 +32,13 @@
 (defparameter *next-state* (car (array-dimensions *parts-of-speech*)))
 
 ;; Scanner table
-(defparameter *table* (make-array '(44 128)
+;; 129, the extra character being for non-ascii characters
+(defparameter *table* (make-array '(44 129)
                                   :initial-element *error-state*
                                   :element-type 'fixnum
                                   :adjustable nil :displaced-to nil :fill-pointer nil))
 (defparameter *valid-lexemes* (index-of :comment))
-(defparameter *valid-terminators* (make-array `(,*next-state* 128)
+(defparameter *valid-terminators* (make-array `(,*next-state* 129)
                                               :initial-element nil))
 
 (defun build-number-dfa (start-state success-state)
@@ -74,7 +75,8 @@
 (defun build-comments-dfa ()
   (fill-path "//" :comment)
   (let ((index (index-of :comment)))
-    (loop for i from 1 to 127
+    ;; Non-ascii characters (128) are allowed in comments
+    (loop for i from 1 to 128
        when (not (= i 10))
        do
          (link-states index i index))))

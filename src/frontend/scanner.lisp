@@ -16,19 +16,25 @@
       (when (< current-termination *start-state*)
         (aref *valid-terminators* current-termination (char-code next-char)))))
 
+(defun safe-char (i)
+  (if (or (null i) (< (char-code i) 128))
+    i
+    (code-char 128)))
+
 (defun follow-word (stream)
   (let ((state *start-state*)
-        (fstr (make-array '(0) :element-type 'base-char
+        (fstr (make-array '(0) :element-type 'character
                           :fill-pointer 0 :adjustable t)))
     (with-output-to-string (s fstr)
       (loop for ch = (when (not (valid-terminator state
-                                                  (peek-char nil stream nil)))
-                       (read-char stream nil))
+                                                  (safe-char (peek-char nil stream nil))))
+                       (safe-char (read-char stream nil)))
          while ch
          do
-           (let ((c (char-code ch)))
-             (unless (member ch '(#\space #\tab #\return))
-               (format s "~a" ch))
-             (setf state
-                   (aref *table* state c)))))
+            (let ((c (char-code ch)))
+              (unless (eq ch #\return)
+                (unless (member ch '(#\space #\tab))
+                  (format s "~a" ch))
+                (setf state
+                      (aref *table* state c))))))
     (cons state fstr)))
