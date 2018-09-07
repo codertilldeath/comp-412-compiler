@@ -31,6 +31,7 @@
     acc))
 
 (defun register->int (r)
+  (declare ((vector character *) r))
   (str->int (subseq r 1)))
 
 (defun make-memop (i)

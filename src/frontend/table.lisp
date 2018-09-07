@@ -39,6 +39,7 @@
                                   :adjustable nil :displaced-to nil :fill-pointer nil))
 (defparameter *valid-lexemes* (index-of :comment))
 (defparameter *valid-terminators* (make-array `(,*next-state* 129)
+                                              :element-type 'boolean
                                               :initial-element nil))
 
 (defun build-number-dfa (start-state success-state)
@@ -82,12 +83,15 @@
          (link-states index i index))))
 
 (defun fill-path (word final-state)
+  (declare ((simple-array fixnum (44 129)) *table*)
+           (fixnum *error-state*))
   (with-input-from-string (stream word)
     (let ((state *start-state*))
       (loop for ch = (read-char stream nil)
             while (peek-char nil stream nil)
             do (let* ((c (char-code ch))
                       (next-state (aref *table* state c)))
+                 (declare (fixnum next-state))
                  (if (not (= next-state *error-state*))
                      (setf state next-state)
                      (let ((new-state (make-new-state)))
@@ -99,10 +103,12 @@
 
 
 (defun make-new-state ()
+  (declare (fixnum *next-state*))
   (let ((new-state-number *next-state*))
     (incf *next-state*)
     new-state-number))
 
 (defun link-states (initial-state char next-state)
+  (declare ((simple-array fixnum (44 129)) *table*))
   (setf (aref *table* initial-state char)
         next-state))

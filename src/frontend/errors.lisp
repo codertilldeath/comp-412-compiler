@@ -52,19 +52,20 @@
   (let (word)
     (loop for (pos . lex) in result
        while (null word)
-       when (= pos 11)
+       when (= (the fixnum pos) 11)
        do (setf word lex))
     (when word
       (report-lex-error word))))
 
 (defun missing-grammar (pos lex)
+  (declare (fixnum pos))
   (if (= pos 11)
       (report-lex-error lex)
       (when (null (assoc pos *grammar-rules*))
         (format nil "Start of line should start with an operator, got ~a~%" (lookup pos)))))
 
 (defun mismatched-grammar (result)
-  (let ((rules (assoc (caar result)
+  (let ((rules (assoc (the fixnum (caar result))
                       *grammar-rules*))
         grammar-expected
         grammar-got)
@@ -73,7 +74,7 @@
           for (pos . lex) = (car remaining)
           while (null grammar-expected)
           do
-             (when (and (not (= pos part))
+             (when (and (not (= (the fixnum pos) (the fixnum part)))
                         ;; This is for when the end of the file is in place of an endline
                         (not (and (= pos 13)
                                   (= part 9))))
@@ -88,6 +89,7 @@
       (mismatched-grammar result)))
 
 (defun any-errors (pos lex result)
+  (declare (fixnum pos))
   (and result
        (not (= pos 13))
        (or (lex-error result)
