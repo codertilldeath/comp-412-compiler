@@ -76,7 +76,7 @@
   (fill-path "//" :comment)
   (let ((index (index-of :comment)))
     ;; Non-ascii characters (128) are allowed in comments
-    (loop for i from 1 to 128
+    (loop for i from 0 to 128
        when (not (= i 10))
        do
          (link-states index i index))))

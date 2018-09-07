@@ -8,6 +8,7 @@
   :depends-on ("alexandria")
   :components ((:file "./frontend/table")
                (:file "./frontend/table-init")
+               (:file "./frontend/table-opt")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
                (:file "./frontend/ir")

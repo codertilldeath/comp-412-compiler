@@ -36,7 +36,7 @@
 (fill-path "nop" :nop)
 
 ;; The above terminators are any non-alphanum characters
-(loop for i from 1 to 127
+(loop for i from 0 to 127
       when (not (alphanum-p (code-char i)))
         do
            (loop for type from (index-of :memop) to (index-of :register) do
@@ -54,7 +54,7 @@
 " :newline)
 
 ;; In the context of these two, anything is a terminator
-(loop for i from 1 to 127 do
+(loop for i from 0 to 127 do
   (loop for type from (index-of :comma) to (index-of :newline) do
     (setf (aref *valid-terminators* type i)
           t)))
@@ -70,7 +70,7 @@
 
 ;; Errors can end with any non-alphanumeric
 
-(loop for i from 1 to 127
+(loop for i from 0 to 127
       when (not (alphanum-p (code-char i)))
         do
            (setf (aref *valid-terminators*
