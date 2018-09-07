@@ -30,9 +30,7 @@
                     (setq option arg-s))))))
 
     (cond ((null option)
-           ;; No option was given, show the help
-           (format t "ERROR: No option specified~%~%")
-           (setq option (intern "-h" "KEYWORD")))
+           (setq option (intern "-p" "KEYWORD")))
           ((and (not (eql :|-h| option))
                 (null filename))
            ;; Command line argument that required file, didn't receive file
