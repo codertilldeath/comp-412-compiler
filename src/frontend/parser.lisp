@@ -71,20 +71,23 @@
                  (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count))))))
 
 ;; Print the ir
-(defun print-ir (file)
-  (let ((success t))
+(defun parse-file (file)
+  (let ((success t)
+        (count 0))
     (with-open-file (stream file)
       (loop for linum fixnum from 1
-            for line = (next-sentence stream linum)
-            when (null line)
-              do (setf success nil)
-            while (or (null line)
-                      (not (eq (lookup (caar line))
-                               :start)))
-            when (and line
-                      (not (eq (lookup (caar line))
-                               :newline)))
-            do (pprint-ir (make-internal line))
+            for line = (slurp-sentence stream)
+            while (not (eq (lookup (caar line))
+                           :start))
+            for errors = (any-errors (caar line) (cdar line) line)
+            if errors
+              do
+                 (format t "On line ~a: ~a" linum errors)
+                 (setf success nil)
+            else if (not (eq (lookup (caar line))
+                             :newline))
+                   do (incf count)
+                      (pprint-ir (make-internal line))
             finally
                (when success
-                 (format t "Successfully parsed file! ~a ILOC commands parsed.~%" linum))))))
+                 (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count))))))
