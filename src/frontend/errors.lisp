@@ -1,7 +1,8 @@
 (defpackage :412fe.parser.errors
   (:use :cl)
   (:import-from :412fe.table
-                :lookup
+   :lookup
+   :index-of
                 :get-example)
   (:export :any-errors
            :report-lex-error
@@ -10,13 +11,18 @@
 
 (in-package :412fe.parser.errors)
 
-(defparameter *grammar-rules*
+(defparameter *grammar-debug*
   '((:memop :register :into :register :newline)
     (:loadi :constant :into :register :newline)
     (:arithop :register :comma :register :into :register :newline)
     (:output :constant :newline)
     (:nop :newline)
     (:newline)))
+
+(defparameter *grammar-rules*
+  (mapcar (lambda (x)
+         (mapcar #'index-of x))
+       *grammar-debug*))
 
 (defun report-lex-error (s)
   (format nil "Unrecognized lexeme \"~a\"~%" s))
@@ -27,13 +33,13 @@
 (defun report-incorrect-word (p1 p2)
   (format nil "Expected ~a, got ~a~%" p1 p2))
 
-(defun grammar-matches (grammar sentence)
-  (and
-   (= (length grammar) (length sentence))
-   (every (lambda (x y)
-            (eq x (lookup (car y))))
-          grammar
-          sentence)))
+;; (defun grammar-matches (grammar sentence)
+;;   (and
+;;    (= (length grammar) (length sentence))
+;;    (every (lambda (x y)
+;;             (eq x (lookup (car y))))
+;;           grammar
+;;           sentence)))
 
 (defun print-sentence (sentence)
   (loop for (p . lex) in sentence
@@ -45,24 +51,20 @@
 (defun lex-error (result)
   (let (word)
     (loop for (pos . lex) in result
-       for part-speech = (lookup pos)
        while (null word)
-       when (eq part-speech
-                :error)
+       when (= pos 11)
        do (setf word lex))
     (when word
       (report-lex-error word))))
 
 (defun missing-grammar (pos lex)
-  (let* ((part-speech (lookup pos)))
-    (if (eq part-speech :error)
-        (progn (report-lex-error lex)
-               t)
-        (when (null (assoc part-speech *grammar-rules*))
-          (format nil "Start of line should start with an operator, got ~a~%" part-speech)))))
+  (if (= pos 11)
+      (report-lex-error lex)
+      (when (null (assoc pos *grammar-rules*))
+        (format nil "Start of line should start with an operator, got ~a~%" (lookup pos)))))
 
-(defun mismatched-grammar (pos lex result)
-  (let ((rules (assoc (lookup pos)
+(defun mismatched-grammar (result)
+  (let ((rules (assoc (caar result)
                       *grammar-rules*))
         grammar-expected
         grammar-got)
@@ -71,20 +73,22 @@
           for (pos . lex) = (car remaining)
           while (null grammar-expected)
           do
-             (when (and (not (eq (lookup pos) part))
-                        (not (and (eq (lookup pos) :start)
-                                  (eq part :newline))))
+             (when (and (not (= pos part))
+                        ;; This is for when the end of the file is in place of an endline
+                        (not (and (= pos 13)
+                                  (= part 9))))
                (setf grammar-expected part)
-               (setf grammar-got (lookup pos))))
+               (setf grammar-got pos)))
     (when grammar-expected
-      (report-incorrect-word grammar-expected grammar-got))))
+      (report-incorrect-word (lookup grammar-expected)
+                             (lookup grammar-got)))))
 
 (defun grammar-error (pos lex result)
   (or (missing-grammar pos lex)
-      (mismatched-grammar pos lex result)))
+      (mismatched-grammar result)))
 
 (defun any-errors (pos lex result)
   (and result
-       (not (eq (lookup pos) :start))
+       (not (= pos 13))
        (or (lex-error result)
            (grammar-error pos lex result))))
