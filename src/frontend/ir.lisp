@@ -18,36 +18,48 @@
 
 (make-IR :opcode "loadI" :constant 10 :dest 2)
 
-(defun parse-register (r)
-  (parse-integer (subseq r 1)))
+(defun chr->int (c)
+  (- (char-code c) 48))
+
+(defun str->int (s)
+  (let ((acc 0))
+    (with-input-from-string (stream s)
+      (loop for c = (read-char stream nil)
+            while c
+            for n = (chr->int c)
+            do (setf acc (+ (* acc 10) n))))
+    acc))
+
+(defun register->int (r)
+  (str->int (subseq r 1)))
 
 (defun make-memop (i)
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
-             :source (parse-register reg1)
-             :dest (parse-register reg2))))
+             :source (register->int reg1)
+             :dest (register->int reg2))))
 
 (defun make-loadi (i)
   (destructuring-bind ((_o . opcode) (_r1 . constant) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
-             :constant (parse-integer constant)
-             :dest (parse-register reg2))))
+             :constant (str->int constant)
+             :dest (register->int reg2))))
 
 (defun make-arithop (i)
   (destructuring-bind ((_o . opcode) (_r1 . r1) (_c . _comma) (_r2 . r2) (_i . _into) (_r3 . reg3) . _rest) i
     (declare (ignore _o _r1 _i _r2 _r3 _c _into _comma _rest))
     (make-IR :opcode opcode
-             :source (parse-register r1)
-             :source-aux (parse-register r2)
-             :dest (parse-register reg3))))
+             :source (register->int r1)
+             :source-aux (register->int r2)
+             :dest (register->int reg3))))
 
 (defun make-output (i)
   (destructuring-bind ((_o . opcode) (_c . constant) . _rest) i
     (declare (ignore _o _c _rest))
     (make-IR :opcode opcode
-             :constant (parse-integer constant))))
+             :constant (str->int constant))))
 
 (defun make-internal (i)
   (case (lookup (caar i))
