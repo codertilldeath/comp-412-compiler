@@ -1,1 +1,0 @@
-The function char-code is commonly invoked in the code. It is a type caster, from char to ascii integer value.
