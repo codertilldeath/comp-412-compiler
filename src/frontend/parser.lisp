@@ -21,20 +21,16 @@
 
 ;; Helper funs
 (defun empty-line? (line)
-  (eq (lookup (caar line))
-      :newline))
+  (eq (caar line) 9))
 
 (defun eof? (line)
-  (eq (lookup (caar line))
-      :start))
+  (eq (caar line) 13))
 
 (defun comment? (p)
-  (eq (lookup p)
-      :comment))
+  (eq p 10))
 
 (defun eof-char? (p)
-  (eq (lookup pos)
-      :start))
+  (eq p 13))
 
 ;; Print the lexemes and parts of speech and line numbers
 (defun pprint-lexeme (ch l)
@@ -53,9 +49,9 @@
              (format t "~a: " linum)
              (pprint-lexeme pos lex)
              (format t "~%")
-             (case (lookup pos)
-               (:error (format t (report-lex-error lex)))
-               (:newline (incf linum))))))))
+             (case pos
+               (11 (format t (report-lex-error lex)))
+               (9 (incf linum))))))))
 
 ;; Report whether parsing was successful
 
@@ -63,7 +59,8 @@
   (loop for (p . lex) = (follow-word stream)
      when (not (comment? p))
      collect (cons p lex)
-        while (not (member (lookup p) '(:start :newline)))))
+        while (not (or (= p 9)
+                       (= p 13)))))
 
 (defun parse-file (file)
   (let ((success t)
