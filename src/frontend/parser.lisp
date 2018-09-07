@@ -71,7 +71,7 @@
                  (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count))))))
 
 ;; Print the ir
-(defun parse-file (file)
+(defun print-ir (file)
   (let ((success t)
         (count 0))
     (with-open-file (stream file)
