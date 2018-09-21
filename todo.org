@@ -1,0 +1,8 @@
+* TODO Implement help flag
+* TODO Cleanify register renaming
+* TODO Add printer-option to structs LL and ll-node
+* TODO Reorganize errors.lisp and parser.lisp
+* TODO Return Lexeme spelling, grammatic category, AND opcode number
+* TODO Replace opcode in IR with integer representation
+* TODO IR, and global variables file in top level directory
+* TODO Work out dependencies
