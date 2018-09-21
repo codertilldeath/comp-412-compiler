@@ -4,7 +4,8 @@
 * TODO Reorganize errors.lisp and parser.lisp
 * TODO Return Lexeme spelling, grammatic category, AND opcode number
 * TODO Replace opcode in IR with integer representation
-* TODO IR, and global variables file in top level directory
+* TODO IR, LL, and global variables file in top level directory
+* TODO Export all symbols of IR and LL, maybe
 * TODO Work out dependencies
 * TODO Count the number of registers, max
 * TODO Calculate MAXLIVE
