@@ -9,6 +9,7 @@
 
 (defstruct IR
   (opcode "" :type string)
+  (class nil :type symbol)
   (constant -1 :type fixnum)
   (r1-s -1 :type fixnum)
   (r1-v -1 :type fixnum)
@@ -45,6 +46,7 @@
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
+             :class :memop
              :r1-s (register->int reg1)
              :r3-s (register->int reg2))))
 
@@ -52,6 +54,7 @@
   (destructuring-bind ((_o . opcode) (_r1 . constant) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
+             :class :loadi
              :constant (str->int constant)
              :r3-s (register->int reg2))))
 
@@ -59,6 +62,7 @@
   (destructuring-bind ((_o . opcode) (_r1 . r1) (_c . _comma) (_r2 . r2) (_i . _into) (_r3 . reg3) . _rest) i
     (declare (ignore _o _r1 _i _r2 _r3 _c _into _comma _rest))
     (make-IR :opcode opcode
+             :class :arithop
              :r1-s (register->int r1)
              :r2-s (register->int r2)
              :r3-s (register->int reg3))))
@@ -67,6 +71,7 @@
   (destructuring-bind ((_o . opcode) (_c . constant) . _rest) i
     (declare (ignore _o _c _rest))
     (make-IR :opcode opcode
+             :class :output
              :constant (str->int constant))))
 
 (defun make-internal (i)
@@ -75,7 +80,8 @@
     (:loadi (make-loadi i))
     (:arithop (make-arithop i))
     (:output (make-output i))
-    (:nop (make-IR :opcode "nop"))))
+    (:nop (make-IR :opcode "nop"
+                   :class :nop))))
 
 ;; (pprint-IR (make-internal '((0 . "loadI") (a . "r1") (b . "=>") (c . "r2") (d . ""))))
 

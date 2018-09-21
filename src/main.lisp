@@ -16,7 +16,7 @@
 (defun main (argl))
 
 
-(rename-registers (parse-file "../../test/nope.txt"))
+(print (ll::to-list (rename-registers (parser:parse-file "../test/nope.txt") 10)))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))
