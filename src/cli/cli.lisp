@@ -9,38 +9,12 @@
   (eql #\-
        (char f 0)))
 
-(defun higher (new old)
-  (let ((pl (list :|-s| :|-p| :|-r| :|-h|)))
-    (< (position old pl)
-       (position new pl))))
-
 (defun parse-args (args)
-  (let (filename option too-many)
-    
-    ;; Determine present flags
-    (loop for arg in (cdr args) do
-         (let ((arg-s (intern arg "KEYWORD")))
-           (cond ((not (cli-flag-p arg))
-                  (setq filename arg))
-                 ((null option)
-                  (setq option arg-s))
-                 (t
-                  (setq too-many t)
-                  (when (higher arg-s option)
-                    (setq option arg-s))))))
-
-    (cond ((null option)
-           (setq option (intern "-p" "KEYWORD")))
-          ((and (not (eql :|-h| option))
-                (null filename))
-           ;; Command line argument that required file, didn't receive file
-           (format t "ERROR: No file passed.~%~%")
-           (setq option (intern "-h"))))
-
-    (when too-many
-      (format t "Too many arguments passed, defaulting to ~a~%~%" option))
-
-    (list option filename)))
+  (if (cli-flag-p (car args))
+      (cons (intern (car args) "KEYWORD")
+            (cadr args))
+      (cons (ir::str->int (car args))
+            (cadr args))))
 
 (defun output-help ()
   (format t "COMP 412, Fall 2018 Front End (lab 1)

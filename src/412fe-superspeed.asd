@@ -3,7 +3,7 @@
 (asdf:defsystem :412fe-superspeed
   :serial t
   :build-operation "program-op"
-  :build-pathname "../build/412fe"
+  :build-pathname "../build/412fealloc"
   :entry-point "412fe:entry"
   :depends-on ("alexandria")
   :around-compile (lambda (next)
@@ -16,7 +16,9 @@
                (:file "./frontend/table-opt")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
+               (:file "./frontend/ll")
                (:file "./frontend/ir")
                (:file "./frontend/parser")
+               (:file "./backend/renamer")
                (:file "./cli/cli")
                (:file "main")))

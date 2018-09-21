@@ -1,9 +1,6 @@
 (defpackage 412fe
   (:use cl)
-  (:import-from :parser
-                :print-lexemes
-                :parse-file
-                :print-ir)
+  (:import-from :parser :parse-file)
   (:import-from :412fe.cli
                 :output-help
                 :parse-args)
@@ -13,10 +10,10 @@
 
 (in-package :412fe)
 
-(defun main (argl))
-
-
-(print (ll::to-list (rename-registers (parser:parse-file "../test/nope.txt") 10)))
+(defun main (argl)
+  (destructuring-bind (f s) (parse-args argl)
+    (case f
+      (:|-x| (ir:output-virtual (rename-registers (parse-file s) 8))))))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))

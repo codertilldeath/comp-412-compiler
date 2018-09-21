@@ -1,8 +1,6 @@
 
 (defpackage :parser
   (:use :cl :alexandria)
-  (:import-from :scanner-table
-                :lookup)
   (:import-from :scanner
                 :follow-word)
   (:import-from :parser.errors
@@ -16,10 +14,7 @@
   (:import-from :ir
    :make-internal
    :pprint-ir)
-  (:export
-   :print-lexemes
-   :parse-file
-   :print-ir))
+  (:export :parse-file))
 
 (in-package :parser)
 
@@ -49,7 +44,7 @@
 (defun parse-file (file)
   (let ((success t)
         (count 0)
-        (ll (make-LL)))
+        (ll (make-LL :size 0)))
     (declare (fixnum count))
     (with-open-file (stream file)
       (loop for linum fixnum from 1
@@ -62,9 +57,6 @@
            (setf success nil)
          else if (not (empty-line? line))
          do
-           (insert-back ll (make-internal line count))
-           (incf count)
-         finally
-           (when success
-             (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count)))
+           (insert-back ll (make-internal line))
+           (incf count))
       ll)))

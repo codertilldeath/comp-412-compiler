@@ -3,23 +3,26 @@
   (:import-from :scanner-table
                 :lookup)
   (:export
-   :make-internal :pprint-ir :output-to-file))
+   :make-internal :pprint-ir :output-virtual))
 
 (in-package :ir)
 
-(defstruct IR
+(defstruct (IR :conc-name)
   (opcode "" :type string)
-  (class nil :type symbol)
+  (category nil :type symbol)
   (constant -1 :type fixnum)
   (r1-s -1 :type fixnum)
   (r1-v -1 :type fixnum)
   (r1-p -1 :type fixnum)
+  (r1-nu -1 :type fixnum)
   (r2-s -1 :type fixnum)
   (r2-v -1 :type fixnum)
   (r2-p -1 :type fixnum)
+  (r2-nu -1 :type fixnum)
   (r3-s -1 :type fixnum)
   (r3-v -1 :type fixnum)
-  (r3-p -1 :type fixnum))
+  (r3-p -1 :type fixnum)
+  (r3-nu -1 :type fixnum))
 
 ;; :memop :loadi :arithop :output :nop
 
@@ -46,7 +49,7 @@
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
-             :class :memop
+             :category :memop
              :r1-s (register->int reg1)
              :r3-s (register->int reg2))))
 
@@ -54,7 +57,7 @@
   (destructuring-bind ((_o . opcode) (_r1 . constant) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
-             :class :loadi
+             :category :loadi
              :constant (str->int constant)
              :r3-s (register->int reg2))))
 
@@ -62,7 +65,7 @@
   (destructuring-bind ((_o . opcode) (_r1 . r1) (_c . _comma) (_r2 . r2) (_i . _into) (_r3 . reg3) . _rest) i
     (declare (ignore _o _r1 _i _r2 _r3 _c _into _comma _rest))
     (make-IR :opcode opcode
-             :class :arithop
+             :category :arithop
              :r1-s (register->int r1)
              :r2-s (register->int r2)
              :r3-s (register->int reg3))))
@@ -71,7 +74,7 @@
   (destructuring-bind ((_o . opcode) (_c . constant) . _rest) i
     (declare (ignore _o _c _rest))
     (make-IR :opcode opcode
-             :class :output
+             :category :output
              :constant (str->int constant))))
 
 (defun make-internal (i)
@@ -81,17 +84,26 @@
     (:arithop (make-arithop i))
     (:output (make-output i))
     (:nop (make-IR :opcode "nop"
-                   :class :nop))))
+                   :category :nop))))
 
 ;; (pprint-IR (make-internal '((0 . "loadI") (a . "r1") (b . "=>") (c . "r2") (d . ""))))
 
 (defun pprint-IR (i)
   (format t "Opcode: ~a, Constant: ~a, Source: ~a, Source-aux: ~a, Destination: ~a~%"
-          (IR-opcode i)
-          (IR-constant i)
-          (IR-r1-s i)
-          (IR-r2-s i)
-          (IR-r3-s i)))
+          (opcode i)
+          (constant i)
+          (r1-s i)
+          (r2-s i)
+          (r3-s i)))
 
-(defun output-to-file (ir)
-  )
+(defun output-virtual (ir)
+  (loop for node = (ll::head ir) then (ll::next node)
+     while node
+     for data = (ll::data node)
+     do
+       (case (category data)
+         (:memop (format t "~a r~a => r~a~%" (opcode data) (r1-v data) (r3-v data)))
+         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (r3-v data)))
+         (:arithop (format t "~a r~a r~a => r~a~%" (opcode data) (r1-v data) (r2-v data) (r3-v data)))
+         (:output (format t "output ~a~%" (constant data)))
+         (:nop (format t "nop~%")))))
