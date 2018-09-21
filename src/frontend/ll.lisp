@@ -1,10 +1,10 @@
-(defpackage :412fe.ll
+(defpackage :ll
   (:use :cl :alexandria)
   (:export :make-LL
            :to-list
            :insert-back))
 
-(in-package :412fe.ll)
+(in-package :ll)
 
 (defstruct LL head tail)
 

@@ -12,6 +12,8 @@
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
                (:file "./frontend/ir")
+               (:file "./frontend/ll")
                (:file "./frontend/parser")
+               (:file "./backend/renamer")
                (:file "./cli/cli")
                (:file "main")))

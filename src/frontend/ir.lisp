@@ -1,11 +1,11 @@
-(defpackage :412fe.ir
+(defpackage :ir
   (:use :cl)
-  (:import-from :412fe.table
+  (:import-from :scanner-table
                 :lookup)
   (:export
    :make-internal :pprint-ir :output-to-file))
 
-(in-package :412fe.ir)
+(in-package :ir)
 
 (defstruct IR
   (opcode "" :type string)

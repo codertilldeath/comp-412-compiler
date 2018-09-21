@@ -1,6 +1,6 @@
-(defpackage 412fe.scanner
+(defpackage scanner
   (:use :cl)
-  (:import-from :412fe.table
+  (:import-from :scanner-table
                 :lookup
                 :*parts-of-speech*
                 :*start-state*
@@ -11,7 +11,7 @@
    :*map-to*)
   (:export :scan))
 
-(in-package :412fe.scanner)
+(in-package :scanner)
 
 (defun valid-terminator (current-termination next-char)
   (declare ((simple-array t (44 129)) *valid-terminators*)

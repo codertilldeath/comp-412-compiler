@@ -1,19 +1,19 @@
 
-(defpackage :412fe.parser
+(defpackage :parser
   (:use :cl :alexandria)
-  (:import-from :412fe.table
+  (:import-from :scanner-table
                 :lookup)
-  (:import-from :412fe.scanner
+  (:import-from :scanner
                 :follow-word)
-  (:import-from :412fe.parser.errors
+  (:import-from :parser.errors
                 :any-errors
                 :report-lex-error
                 :report-eof-error
                 :report-incorrect-word)
-  (:import-from :412fe.ll
+  (:import-from :ll
                 :make-ll
                 :insert-back)
-  (:import-from :412fe.ir
+  (:import-from :ir
    :make-internal
    :pprint-ir)
   (:export
@@ -21,7 +21,7 @@
    :parse-file
    :print-ir))
 
-(in-package :412fe.parser)
+(in-package :parser)
 
 ;; Helper funs
 (defun empty-line? (line)
@@ -87,7 +87,7 @@
            (setf success nil)
          else if (not (empty-line? line))
          do
-           (insert-back (make-internal line))
+           (insert-back ll (make-internal line))
            (incf count)
          finally
            (when success

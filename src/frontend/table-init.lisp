@@ -1,4 +1,4 @@
-(in-package :412fe.table)
+(in-package :scanner-table)
 
 ;; Leading spaces don't affect anything
 (link-states *start-state*

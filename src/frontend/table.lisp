@@ -1,4 +1,4 @@
-(defpackage 412fe.table
+(defpackage scanner-table
   (:use :cl)
   (:export :lookup
            :*parts-of-speech*
@@ -8,7 +8,7 @@
            :*table*
            :get-example))
 
-(in-package :412fe.table)
+(in-package :scanner-table)
 
 ;; Parts of speech table
 (defparameter *parts-of-speech*
