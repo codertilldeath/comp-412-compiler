@@ -1,6 +1,6 @@
-(defpackage :412fe.parser.errors
+(defpackage :parser.errors
   (:use :cl)
-  (:import-from :412fe.table
+  (:import-from :scanner-table
    :lookup
    :index-of
                 :get-example)
@@ -9,7 +9,7 @@
            :report-eof-error
            :report-incorrect-word))
 
-(in-package :412fe.parser.errors)
+(in-package :parser.errors)
 
 (defparameter *grammar-debug*
   '((:memop :register :into :register :newline)

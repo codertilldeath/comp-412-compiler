@@ -1,4 +1,4 @@
-(in-package :412fe.table)
+(in-package :scanner-table)
 
 (defparameter *map-to*
   (make-array '(129) :element-type 'fixnum
