@@ -104,6 +104,6 @@
        (case (category data)
          (:memop (format t "~a r~a => r~a~%" (opcode data) (r1-v data) (r3-v data)))
          (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (r3-v data)))
-         (:arithop (format t "~a r~a r~a => r~a~%" (opcode data) (r1-v data) (r2-v data) (r3-v data)))
+         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (r1-v data) (r2-v data) (r3-v data)))
          (:output (format t "output ~a~%" (constant data)))
          (:nop (format t "nop~%")))))
