@@ -10,11 +10,11 @@
        (char f 0)))
 
 (defun parse-args (args)
-  (if (cli-flag-p (car args))
-      (cons (intern (car args) "KEYWORD")
-            (cadr args))
-      (cons (ir::str->int (car args))
-            (cadr args))))
+  (if (cli-flag-p (cadr args))
+      (cons (intern (cadr args) "KEYWORD")
+            (caddr args))
+      (cons (ir::str->int (cadr args))
+            (caddr args))))
 
 (defun output-help ()
   (format t "COMP 412, Fall 2018 Front End (lab 1)
