@@ -62,7 +62,7 @@
            (setf success nil)
          else if (not (empty-line? line))
          do
-           (insert-back ll (make-internal line))
+           (insert-back ll (make-internal line count))
            (incf count)
          finally
            (when success
