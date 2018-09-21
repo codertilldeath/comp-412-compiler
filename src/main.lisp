@@ -11,7 +11,7 @@
 (in-package :412fe)
 
 (defun main (argl)
-  (destructuring-bind (f s) (parse-args argl)
+  (destructuring-bind (f . s) (parse-args argl)
     (case f
       (:|-x| (ir:output-virtual (rename-registers (parse-file s) 8))))))
 
