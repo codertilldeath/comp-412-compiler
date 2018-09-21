@@ -13,7 +13,7 @@
 (defun main (argl)
   (destructuring-bind (f . s) (parse-args argl)
     (case f
-      (:|-x| (ir:output-virtual (rename-registers (parse-file s) 8))))))
+      (:|-x| (ir:output-virtual (rename-registers (parse-file s) 1000))))))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))

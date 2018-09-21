@@ -6,3 +6,5 @@
 * TODO Replace opcode in IR with integer representation
 * TODO IR, and global variables file in top level directory
 * TODO Work out dependencies
+* TODO Count the number of registers, max
+* TODO Calculate MAXLIVE
