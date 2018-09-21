@@ -3,20 +3,26 @@
   (:import-from :412fe.table
                 :lookup)
   (:export
-   :make-internal :pprint-ir))
+   :make-internal :pprint-ir :output-to-file))
 
 (in-package :412fe.ir)
 
 (defstruct IR
   (opcode "" :type string)
   (constant -1 :type fixnum)
-  (source -1 :type fixnum)
-  (source-aux -1 :type fixnum)
-  (dest -1 :type fixnum))
+  (r1-s -1 :type fixnum)
+  (r1-v -1 :type fixnum)
+  (r1-p -1 :type fixnum)
+  (r2-s -1 :type fixnum)
+  (r2-v -1 :type fixnum)
+  (r2-p -1 :type fixnum)
+  (r3-s -1 :type fixnum)
+  (r3-v -1 :type fixnum)
+  (r3-p -1 :type fixnum))
 
 ;; :memop :loadi :arithop :output :nop
 
-(make-IR :opcode "loadI" :constant 10 :dest 2)
+;; (make-IR :opcode "loadI" :constant 10 :dest 2)
 
 (defun chr->int (c)
   (- (char-code c) 48))
@@ -39,23 +45,23 @@
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
-             :source (register->int reg1)
-             :dest (register->int reg2))))
+             :r1-s (register->int reg1)
+             :r3-s (register->int reg2))))
 
 (defun make-loadi (i)
   (destructuring-bind ((_o . opcode) (_r1 . constant) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
              :constant (str->int constant)
-             :dest (register->int reg2))))
+             :r3-s (register->int reg2))))
 
 (defun make-arithop (i)
   (destructuring-bind ((_o . opcode) (_r1 . r1) (_c . _comma) (_r2 . r2) (_i . _into) (_r3 . reg3) . _rest) i
     (declare (ignore _o _r1 _i _r2 _r3 _c _into _comma _rest))
     (make-IR :opcode opcode
-             :source (register->int r1)
-             :source-aux (register->int r2)
-             :dest (register->int reg3))))
+             :r1-s (register->int r1)
+             :r2-s (register->int r2)
+             :r3-s (register->int reg3))))
 
 (defun make-output (i)
   (destructuring-bind ((_o . opcode) (_c . constant) . _rest) i
@@ -71,12 +77,15 @@
     (:output (make-output i))
     (:nop (make-IR :opcode "nop"))))
 
-(IR-opcode (make-internal '((0 . "loadI") (a . "r1") (b . "=>") (c . "r2") (d . ""))))
+;; (pprint-IR (make-internal '((0 . "loadI") (a . "r1") (b . "=>") (c . "r2") (d . ""))))
 
 (defun pprint-IR (i)
   (format t "Opcode: ~a, Constant: ~a, Source: ~a, Source-aux: ~a, Destination: ~a~%"
           (IR-opcode i)
           (IR-constant i)
-          (IR-source i)
-          (IR-source-aux i)
-          (IR-dest i)))
+          (IR-r1-s i)
+          (IR-r2-s i)
+          (IR-r3-s i)))
+
+(defun output-to-file (ir)
+  )

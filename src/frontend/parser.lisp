@@ -1,3 +1,4 @@
+
 (defpackage :412fe.parser
   (:use :cl :alexandria)
   (:import-from :412fe.table
@@ -9,6 +10,9 @@
                 :report-lex-error
                 :report-eof-error
                 :report-incorrect-word)
+  (:import-from :412fe.ll
+                :make-ll
+                :insert-back)
   (:import-from :412fe.ir
    :make-internal
    :pprint-ir)
@@ -69,23 +73,26 @@
 
 (defun parse-file (file)
   (let ((success t)
-        (count 0))
+        (count 0)
+        (ll (make-LL)))
     (declare (fixnum count))
     (with-open-file (stream file)
       (loop for linum fixnum from 1
-            for line = (slurp-sentence stream)
-            while (not (eof? line))
-            for errors = (any-errors (caar line) (cdar line) line)
-            if errors
-              do
-                 (format t "On line ~a: ~a" linum errors)
-                 (setf success nil)
-            else if (not (empty-line? line))
-                   collect (make-internal line)
-                   and do (incf count)
-            finally
-               (when success
-                 (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count))))))
+         for line = (slurp-sentence stream)
+         while (not (eof? line))
+         for errors = (any-errors (caar line) (cdar line) line)
+         if errors
+         do
+           (format t "On line ~a: ~a" linum errors)
+           (setf success nil)
+         else if (not (empty-line? line))
+         do
+           (insert-back (make-internal line))
+           (incf count)
+         finally
+           (when success
+             (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count)))
+      ll)))
 
 ;; Print the ir
 (defun print-ir (file)

@@ -7,11 +7,10 @@ QLSOFT = $(QL)/dists/quicklisp/software
 
 all: binary
 
-binary: $(BUILDDIR)/debug $(BUILDDIR)/412fe
+binary: $(BUILDDIR)/412fe
 
 # Remove binaries and fasl compiled files
 clean:
-	rm build/debug
 	rm build/412fe
 	find . -name "*.fasl" -type f -delete
 
