@@ -38,31 +38,6 @@
   (declare (fixnum p))
   (= p 13))
 
-;; Print the lexemes and parts of speech and line numbers
-(defun pprint-lexeme (ch l)
-  (declare ((vector character *) l))
-  (if (string= l "
-")
-      (format t "{ ~a, \"\\n\" }" (lookup ch))
-      (format t "{ ~a, ~S } " (lookup ch) l)))
-
-(defun print-lexemes (file)
-  (let ((linum 1))
-    (declare (fixnum linum))
-    (with-open-file (stream file)
-      (loop for (pos . lex) = (follow-word stream)
-         while (not (eof-char? pos))
-         do
-           (progn
-             (format t "~a: " linum)
-             (pprint-lexeme pos lex)
-             (format t "~%")
-             (case pos
-               (11 (format t (report-lex-error lex)))
-               (9 (incf linum))))))))
-
-;; Report whether parsing was successful
-
 (defun slurp-sentence (stream)
   (loop for lex = (follow-word stream)
         for p = (car lex)
@@ -93,24 +68,3 @@
            (when success
              (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count)))
       ll)))
-
-;; Print the ir
-(defun print-ir (file)
-  (let ((success t)
-        (count 0))
-    (declare (fixnum count))
-    (with-open-file (stream file)
-      (loop for linum fixnum from 1
-            for line = (slurp-sentence stream)
-            while (not (eof? line))
-            for errors = (any-errors (caar line) (cdar line) line)
-            if errors
-              do
-                 (format t "On line ~a: ~a" linum errors)
-                 (setf success nil)
-            else if (not (empty-line? line))
-                   do (incf count)
-                      (pprint-ir (make-internal line))
-            finally
-               (when success
-                 (format t "Successfully parsed file! ~a ILOC commands parsed.~%" count))))))
