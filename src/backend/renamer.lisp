@@ -1,7 +1,9 @@
 (defpackage :renamer
   (:use :cl :alexandria)
   (:import-from :global
-                :*max-register*)
+                :*max-register*
+                :*max-live*
+                :*current-live*)
   (:export
    :rename-registers))
 
@@ -15,8 +17,11 @@
   (let ((s (ir::source register)))
     (unless (= s -1)
       (when (= (aref *SR-to-VR* s) -1)
+        ;; This is a def
         (setf (aref *SR-to-VR* s) *VR-name*)
-        (incf *VR-name*))
+        (incf *VR-name*)
+        (incf *current-live*))
+      ;; Use code
       (setf (ir::virtual register) (aref *SR-to-VR* s))
       (setf (ir::next-use register) (aref *last-use* s))
       (setf (aref *last-use* s) count))))
@@ -24,6 +29,7 @@
 (defun kill (ir)
   (let ((s (ir::source ir)))
     (unless (= s -1)
+      (decf *current-live*)
       (setf (aref *SR-to-VR* s) -1)
       (setf (aref *last-use* s) -1))))
 
@@ -42,5 +48,7 @@
              (kill (ir::r3 data)))
            (update (ir::r2 data) current)
            (update (ir::r1 data) current)
-           (decf current))))
+           (decf current)
+           (when (> *current-live* *max-live*)
+             (setq *max-live* *current-live*)))))
   ll)

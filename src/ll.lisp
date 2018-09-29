@@ -6,9 +6,17 @@
 
 (in-package :ll)
 
-(defstruct (LL :conc-name) head tail size)
+(defstruct (LL :conc-name
+               (:print-function
+                (lambda (struct stream z)
+                  (print (to-list struct)))))
+  head tail size)
 
-(defstruct (ll-node :conc-name) data prev next)
+(defstruct (ll-node :conc-name
+                    (:print-function
+                     (lambda (struct stream z)
+                       (print (data struct)))))
+  data prev next)
 
 (defun to-list (ll)
   (loop for i = (head ll) then (next i)

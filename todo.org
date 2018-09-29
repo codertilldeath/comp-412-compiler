@@ -4,14 +4,18 @@
 * DONE Cleanify register renaming
   CLOSED: [2018-09-29 Sat 15:29]
   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:29]
-* TODO Add printer-option to structs LL and ll-node
+* DONE Add printer-option to structs LL and ll-node
+  CLOSED: [2018-09-29 Sat 15:52]
+  - State "DONE"       from "TODO"       [2018-09-29 Sat 15:52]
 * TODO Reorganize errors.lisp and parser.lisp
 * TODO Return Lexeme spelling, grammatic category, AND opcode number
 * TODO Replace opcode in IR with integer representation
 * DONE IR and LL file in top level directory
   CLOSED: [2018-09-29 Sat 13:40]
   - State "DONE"       from "TODO"       [2018-09-29 Sat 13:40]
-* TODO Add global variables lisp file
+* DONE Add global variables lisp file
+  CLOSED: [2018-09-29 Sat 16:19]
+  - State "DONE"       from "TODO"       [2018-09-29 Sat 16:19]
 * TODO Export all symbols of IR and LL, maybe
 * TODO Work out dependencies
 * DONE Count the number of registers, max
