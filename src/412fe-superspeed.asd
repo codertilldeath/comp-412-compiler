@@ -11,14 +11,19 @@
                                          (safety 0)
                                          (speed 3)))
                     (funcall next))
-  :components ((:file "./frontend/table")
+  :components ((:file "global")
+               (:file "ll")
+               
+               (:file "./frontend/table")
+               (:file "ir")
                (:file "./frontend/table-init")
                (:file "./frontend/table-opt")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
-               (:file "ll")
-               (:file "ir")
                (:file "./frontend/parser")
+               
                (:file "./backend/renamer")
+               (:file "./backend/allocator")
+               
                (:file "./cli/cli")
                (:file "main")))
