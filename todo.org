@@ -6,7 +6,10 @@
 * TODO Reorganize errors.lisp and parser.lisp
 * TODO Return Lexeme spelling, grammatic category, AND opcode number
 * TODO Replace opcode in IR with integer representation
-* TODO IR, LL, and global variables file in top level directory
+* DONE IR and LL file in top level directory
+  CLOSED: [2018-09-29 Sat 13:40]
+  - State "DONE"       from "TODO"       [2018-09-29 Sat 13:40]
+* TODO Add global variables lisp file
 * TODO Export all symbols of IR and LL, maybe
 * TODO Work out dependencies
 * TODO Count the number of registers, max
