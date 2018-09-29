@@ -7,14 +7,18 @@
   :entry-point "412fe:entry"
   :depends-on ("alexandria")
   :components ((:file "global")
+               (:file "ll")
+               
                (:file "./frontend/table")
+               (:file "ir")
                (:file "./frontend/table-init")
                (:file "./frontend/table-opt")
                (:file "./frontend/scanner")
                (:file "./frontend/errors")
-               (:file "ll")
-               (:file "ir")
                (:file "./frontend/parser")
+               
                (:file "./backend/renamer")
+               (:file "./backend/allocator")
+               
                (:file "./cli/cli")
                (:file "main")))

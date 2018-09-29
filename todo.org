@@ -18,3 +18,4 @@
   CLOSED: [2018-09-29 Sat 15:31]
   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:31]
 * TODO Calculate MAXLIVE
+* TODO Remove IR's dependency on table:lookup
