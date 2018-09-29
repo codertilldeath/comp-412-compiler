@@ -17,16 +17,14 @@
             (caddr args))))
 
 (defun output-help ()
-  (format t "COMP 412, Fall 2018 Front End (lab 1)
+  (format t "COMP 412, Fall 2018 Register Allocator (lab 2)
 Command Syntax:
-	./412fe [flags] filename
+	412alloc k filename [-h] [-l]
 
 Required arguments:
+	k	  specifies the number of register available
 	filename  is the pathname (absolute or relative) to the input file
 
 Optional flags:
-	-h	 prints this message
-	-s	 prints tokens in token stream
-	-p	 invokes parser and reports on success or failure
-	-r	 prints human readable version of parser's IR
+	-h	  prints this message
 "))

@@ -1,0 +1,5 @@
+* Implementation ideas
+  |         | VR1 | VR2 | ... |
+  |---------+-----+-----+-----|
+  | Active? | T   | F   |     |
+* 

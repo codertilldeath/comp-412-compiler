@@ -1,4 +1,6 @@
-* TODO Implement help flag
+* DONE Implement help flag
+  CLOSED: [2018-09-29 Sat 13:39]
+  - State "DONE"       from "TODO"       [2018-09-29 Sat 13:39]
 * TODO Cleanify register renaming
 * TODO Add printer-option to structs LL and ll-node
 * TODO Reorganize errors.lisp and parser.lisp
