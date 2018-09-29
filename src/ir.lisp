@@ -2,8 +2,10 @@
   (:use :cl)
   (:import-from :scanner-table
                 :lookup)
+  (:import-from :global
+               :*max-register*)
   (:export
-   :make-internal :pprint-ir :output-virtual))
+   :make-internal :pprint-ir :output-ir))
 
 (in-package :ir)
 
@@ -40,7 +42,10 @@
 
 (defun register->int (r)
   (declare ((vector character *) r))
-  (make-Register :source (str->int (subseq r 1))))
+  (let ((num (str->int (subseq r 1))))
+    (when (> (1+ num) *max-register*)
+      (setq *max-register* (1+ num)))
+    (make-Register :source num)))
 
 (defun make-memop (i)
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
@@ -93,14 +98,14 @@
           (r2 i)
           (r3 i)))
 
-(defun output-virtual (ir)
+(defun output-ir (ir f)
   (loop for node = (ll::head ir) then (ll::next node)
      while node
      for data = (ll::data node)
      do
        (case (category data)
-         (:memop (format t "~a r~a => r~a~%" (opcode data) (virtual (r1 data)) (virtual (r3 data))))
-         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (virtual (r3 data))))
-         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (virtual (r1 data)) (virtual (r2 data)) (virtual (r3 data))))
+         (:memop (format t "~a r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r3 data))))
+         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (funcall f (r3 data))))
+         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r2 data)) (funcall f (r3 data))))
          (:output (format t "output ~a~%" (constant data)))
          (:nop (format t "nop~%")))))

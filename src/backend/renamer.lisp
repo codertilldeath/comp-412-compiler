@@ -1,5 +1,7 @@
 (defpackage :renamer
   (:use :cl :alexandria)
+  (:import-from :global
+                :*max-register*)
   (:export
    :rename-registers))
 
@@ -9,8 +11,7 @@
 (defparameter *last-use* nil)
 (defparameter *VR-name* nil)
 
-
-(defun update-reg (register count)
+(defun update (register count)
   (let ((s (ir::source register)))
     (unless (= s -1)
       (when (= (aref *SR-to-VR* s) -1)
@@ -26,20 +27,20 @@
       (setf (aref *SR-to-VR* s) -1)
       (setf (aref *last-use* s) -1))))
 
-(defun rename-registers (ll register-max)
+(defun rename-registers (ll)
   (setf *VR-name* 0
-        *last-use* (make-array register-max :element-type 'fixnum :initial-element -1)
-        *SR-to-VR* (make-array register-max :element-type 'fixnum :initial-element -1))
+        *last-use* (make-array *max-register* :element-type 'fixnum :initial-element -1)
+        *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1))
   (let ((current (1- (ll::size ll))))
     (loop for i = (ll::tail ll) then (ll::prev i)
        while i
        for data = (ll::data i)
        do
          (progn
-           (update-reg (ir::r3 data) current)
+           (update (ir::r3 data) current)
            (unless (string= (ir::opcode data) "store")
              (kill (ir::r3 data)))
-           (update-reg (ir::r2 data) current)
-           (update-reg (ir::r1 data) current)
+           (update (ir::r2 data) current)
+           (update (ir::r1 data) current)
            (decf current))))
   ll)

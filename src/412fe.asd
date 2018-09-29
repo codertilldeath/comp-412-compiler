@@ -6,7 +6,8 @@
   :build-pathname "../build/debug"
   :entry-point "412fe:entry"
   :depends-on ("alexandria")
-  :components ((:file "./frontend/table")
+  :components ((:file "global")
+               (:file "./frontend/table")
                (:file "./frontend/table-init")
                (:file "./frontend/table-opt")
                (:file "./frontend/scanner")

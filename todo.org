@@ -1,7 +1,9 @@
 * DONE Implement help flag
   CLOSED: [2018-09-29 Sat 13:39]
   - State "DONE"       from "TODO"       [2018-09-29 Sat 13:39]
-* TODO Cleanify register renaming
+* DONE Cleanify register renaming
+  CLOSED: [2018-09-29 Sat 15:29]
+  - State "DONE"       from "TODO"       [2018-09-29 Sat 15:29]
 * TODO Add printer-option to structs LL and ll-node
 * TODO Reorganize errors.lisp and parser.lisp
 * TODO Return Lexeme spelling, grammatic category, AND opcode number
@@ -12,5 +14,7 @@
 * TODO Add global variables lisp file
 * TODO Export all symbols of IR and LL, maybe
 * TODO Work out dependencies
-* TODO Count the number of registers, max
+* DONE Count the number of registers, max
+  CLOSED: [2018-09-29 Sat 15:31]
+  - State "DONE"       from "TODO"       [2018-09-29 Sat 15:31]
 * TODO Calculate MAXLIVE
