@@ -21,9 +21,10 @@
       (setf (aref *last-use* s) count))))
 
 (defun kill (ir)
-  (let ((s (ir::source (ir::r3 ir))))
-    (setf (aref *SR-to-VR* s) -1)
-    (setf (aref *last-use* s) -1)))
+  (let ((s (ir::source ir)))
+    (unless (= s -1)
+      (setf (aref *SR-to-VR* s) -1)
+      (setf (aref *last-use* s) -1))))
 
 (defun rename-registers (ll register-max)
   (setf *VR-name* 0
@@ -35,10 +36,10 @@
        for data = (ll::data i)
        do
          (progn
-           (update-reg (ir::r3 ir) count)
-           (unless (string= (ir::opcode ir) "store")
-             (kill (ir::r3 ir)))
-           (update-reg (ir::r2 ir) count)
-           (update-reg (ir::r1 ir) count)
+           (update-reg (ir::r3 data) current)
+           (unless (string= (ir::opcode data) "store")
+             (kill (ir::r3 data)))
+           (update-reg (ir::r2 data) current)
+           (update-reg (ir::r1 data) current)
            (decf current))))
   ll)
