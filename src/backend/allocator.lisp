@@ -59,7 +59,8 @@
          (allocate-safe (ir::r2 data))
          (clear-last-use (ir::r2 data))
          (clear-last-use (ir::r1 data))
-         (allocate-safe (ir::r3 data)))))
+         (allocate-safe (ir::r3 data))))
+  ir)
 
 (defun allocate-registers (ir registers)
   (rename-registers ir)
