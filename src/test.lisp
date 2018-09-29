@@ -19,6 +19,12 @@
     (allocator:allocate-registers ir 4)
     (ir::output-ir ir #'ir::physical)))
 
+(progn
+  (global:compile-start)
+  (let* ((ir (parser:parse-file "../../../../students/lab2/code_check_1/cc1.i")))
+    (allocator:allocate-registers ir 7)
+    (ir::output-ir ir #'ir::physical)))
+
 global:*max-live*
 global:*max-register*
 

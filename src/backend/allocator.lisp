@@ -63,7 +63,7 @@
 
 (defun allocate-registers (ir registers)
   (rename-registers ir)
-  (if (<= registers *max-live*)
+  (if (<= *max-live* registers)
       (allocate-full ir registers)
       (progn
         (print "SOL, buddy")
