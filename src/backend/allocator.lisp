@@ -119,22 +119,21 @@
                                       :physical dest)))
     ll))
 
-(defun safety-check ()
+(defun safety-check (linum)
   (loop for i from 0 to (1- (car (array-dimensions *VR-to-PR*)))
      do
        (if (and (not (= -1 (aref *VR-to-PR* i)))
                 (not (= (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i)))
                         i)))
-           (print "We have a problem!")))
+           (format t "We have a problem! Line number ~a! vr~a does not match pr~a!~%" linum i (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i))))))
   (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
      do
        (if (and (not (= -1 (ir::virtual (aref *PR-to-VR* i))))
                 (not (= (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))
                         i)))
-           (print "We have a problem!"))))
+           (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
 
 (defun allocate-unsafe (ll ir register rcount)
-  ;; (safety-check)
   (let ((v (ir::virtual register))
         spilled)
     (unless (= -1 v)
@@ -182,6 +181,7 @@
         *VR-spilled?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
         *regs* (number-list 0 (1- registers)))
   (loop for i = (ll::head ir) then (ll::next i)
+     for iter from 0
      while i
      for data = (ll::data i)
      do
@@ -191,6 +191,8 @@
          (clear-last-use (ir::r2 data))
          (clear-last-use (ir::r1 data))
          (allocate-unsafe ir i (ir::r3 data) registers)
+         (safety-check iter)
+
 ))
   ir)
 

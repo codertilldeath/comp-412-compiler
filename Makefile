@@ -11,7 +11,7 @@ binary: $(BUILDDIR)/412fe
 
 # Remove binaries and fasl compiled files
 clean:
-	rm build/412fe
+	rm build/412fealloc
 	find . -name "*.fasl" -type f -delete
 
 # Remove everything, including libraries
