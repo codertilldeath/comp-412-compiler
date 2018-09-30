@@ -14,6 +14,7 @@
 (defparameter *VR-to-PR* nil)
 (defparameter *PR-to-VR* nil)
 (defparameter *regs* nil)
+(defparameter *VR-spilled?* nil)
 
 (defun number-list (iter num)
   (if (= iter num)
@@ -119,7 +120,8 @@
     ll))
 
 (defun allocate-unsafe (ll ir register rcount)
-  (let ((v (ir::virtual register)))
+  (let ((v (ir::virtual register))
+        spilled)
     (unless (= -1 v)
       ;; First time using or defining VR
       (when (= -1 (aref *VR-to-PR* v))
@@ -127,17 +129,25 @@
           (associate register reg)
           (let* ((reg (spill-a-register))
                  (to-spill (aref *PR-to-VR* reg)))
-            ;;(break)
-            (format t "Spilling pr~a, or ~a~%" reg to-spill)
             (disassociate to-spill reg)
             (ll:insert-before ll ir (generate-spill to-spill rcount))
-            (associate register reg))))
+            (associate register reg)
+            (setf (aref *VR-spilled?* v) t)
+            (setf spilled t)))
+        (when (and (not spilled)
+                   (aref *VR-spilled?* v))
+          (ll:insert-before ll ir
+                            (generate-restore register rcount (get-pr v)))
+          (setf (aref *VR-spilled?* v) nil)))
       ;; Set the register
-      (setf (ir::physical register) (get-pr v)))))
+      (setf (ir::physical register) (get-pr v))
+      ;; Update next-use, because the "when" above prevents uses from updating
+      (setf (aref *PR-to-VR* (get-pr v)) register))))
 
 (defun allocate-spill (ir registers)
   (setf *VR-to-PR* (make-array *VR-name* :element-type 'fixnum :initial-element -1)
         *PR-to-VR* (make-array registers :element-type 'ir::register :initial-element (ir::make-register))
+        *VR-spilled?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
         *regs* (number-list 0 (1- registers)))
   (loop for i = (ll::head ir) then (ll::next i)
      while i
