@@ -44,7 +44,7 @@
 (defun parse-file (file)
   (let ((success t)
         (count 0)
-        (ll (make-LL :size 0)))
+        (ll (make-LL)))
     (declare (fixnum count))
     (with-open-file (stream file)
       (loop for linum fixnum from 1

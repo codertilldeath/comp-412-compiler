@@ -10,7 +10,7 @@
                (:print-function
                 (lambda (struct stream z)
                   (print (to-list struct)))))
-  head tail size)
+  head tail (size 0 :type fixnum))
 
 (defstruct (ll-node :conc-name
                     (:print-function
