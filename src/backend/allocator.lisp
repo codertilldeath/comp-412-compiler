@@ -149,12 +149,12 @@
             (associate register reg)
             (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)
             (setf spilled t)
-            (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)))
+            ;; (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)))
         (when (and (not spilled)
                    (aref *VR-spilled?* v))
           (if-let (reg (pop *regs*))
             (progn 
-              (format t "Restoring vr~a => pr~a~%" v (get-pr v))
+              ;; (format t "Restoring vr~a => pr~a~%" v (get-pr v))
               (ll:insert-before ll ir
                                 (generate-restore register rcount reg))
               (setf (aref *VR-spilled?* v) nil))
@@ -165,8 +165,8 @@
               (associate register reg)
               (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)
               (setf spilled t)
-              (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)
-              (format t "Restoring vr~a => pr~a~%" v (get-pr v))
+              ;; (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)
+              ;; (format t "Restoring vr~a => pr~a~%" v (get-pr v))
               (ll:insert-before ll ir
                                 (generate-restore register rcount reg))))))
       ;; Set the register
