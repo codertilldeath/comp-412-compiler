@@ -23,3 +23,6 @@
   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:31]
 * TODO Calculate MAXLIVE
 * TODO Remove IR's dependency on table:lookup
+* TODO Remove abs from output-ir
+* TODO Maybe if next use is on the same line, don't count that one
+* TODO [#A] Start on register spilling. Loop through physical registers

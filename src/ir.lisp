@@ -98,14 +98,38 @@
           (r2 i)
           (r3 i)))
 
+(defun output-instruction (data f)
+  (case (category data)
+         (:memop (format t "~a r~a => r~a~%" (opcode data) (abs (funcall f (r1 data))) (abs (funcall f (r3 data)))))
+         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (abs (funcall f (r3 data)))))
+         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (abs (funcall f (r1 data))) (abs (funcall f (r2 data))) (abs (funcall f (r3 data)))))
+         (:output (format t "output ~a~%" (constant data)))
+         (:nop (format t "nop~%"))))
+
 (defun output-ir (ir f)
   (loop for node = (ll::head ir) then (ll::next node)
      while node
      for data = (ll::data node)
      do
-       (case (category data)
-         (:memop (format t "~a r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r3 data))))
-         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (funcall f (r3 data))))
-         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r2 data)) (funcall f (r3 data))))
-         (:output (format t "output ~a~%" (constant data)))
-         (:nop (format t "nop~%")))))
+       (output-instruction data f)))
+
+(defun z (n)
+  (if (< n 0)
+      "-"
+      n))
+
+(defun output-ir-table (ir)
+  (format t "|opcode|VR|PR|NU||VR|PR|NU||VR|PR|NU|~%")
+  (format t "|-~%")
+  (loop for node = (ll::head ir) then (ll::next node)
+     while node
+     for data = (ll::data node)
+     do
+       (let ((r1 (r1 data))
+             (r2 (r2 data))
+             (r3 (r3 data)))
+         (format t "|~a|~a|~a|~a||~a|~a|~a||~a|~a|~a|~%"
+                 (opcode data)
+                 (z (virtual r1)) (z (physical r1)) (z (next-use r1))
+                 (z (virtual r2)) (z (physical r2)) (z (next-use r2))
+                 (z (virtual r3)) (z (physical r3)) (z (next-use r3))))))

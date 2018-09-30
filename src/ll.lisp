@@ -2,7 +2,9 @@
   (:use :cl :alexandria)
   (:export :make-LL
            :to-list
-           :insert-back))
+           :insert-back
+           :insert-before
+           :insert-after))
 
 (in-package :ll)
 
@@ -35,3 +37,38 @@
     (setf (tail LL) new-node)
     (incf (size LL))
     LL))
+
+(defun insert-before (ll1 ll-node ll2)
+  (let ((hd (head ll2))
+        (tl (tail ll2))
+        (bf (prev ll-node)))
+    (link-nodes tl ll-node)
+    (if bf
+        (link-nodes bf hd)
+        (setf (head ll1) hd))))
+
+(defun insert-after (ll1 ll-node ll2)
+  (let ((hd (head ll2))
+        (tl (tail ll2))
+        (af (next ll-node)))
+    (link-nodes ll-node hd)
+    (if af
+        (link-nodes tl af)
+        (setf (tail ll1) tl))))
+
+;; Testing
+;; (let ((ll (make-LL))
+;;       (ll2 (make-LL))
+;;       (ll3 (make-LL)))
+;;   (insert-back ll 10)
+;;   (insert-back ll 1)
+;;   (insert-back ll 2)
+;;   (insert-back ll2 3)
+;;   (insert-back ll2 4)
+;;   (insert-back ll2 5)
+;;   (insert-back ll3 6)
+;;   (insert-back ll3 7)
+;;   (insert-back ll3 8)
+;;   (insert-before ll (head ll) ll2)
+;;   (insert-after ll (tail ll) ll3)
+;;   ll)

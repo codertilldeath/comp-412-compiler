@@ -24,6 +24,8 @@
       ;; Use code
       (setf (ir::virtual register) (aref *SR-to-VR* s))
       (setf (ir::next-use register) (aref *last-use* s))
+      ;; This line causes the same-line-next-use bug
+      ;; The previous register has already updated the last-use table
       (setf (aref *last-use* s) count))))
 
 (defun kill (ir)
@@ -33,22 +35,24 @@
       (setf (aref *SR-to-VR* s) -1)
       (setf (aref *last-use* s) -1))))
 
+(defun update-line (data current)
+  (update (ir::r3 data) current)
+  (unless (string= (ir::opcode data) "store")
+    (kill (ir::r3 data)))
+  (update (ir::r2 data) current)
+  (update (ir::r1 data) current)
+  (when (> *current-live* *max-live*)
+    (setq *max-live* *current-live*)))
+
 (defun rename-registers (ll)
   (setf *VR-name* 0
         *last-use* (make-array *max-register* :element-type 'fixnum :initial-element -1)
         *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1))
   (let ((current (1- (ll::size ll))))
     (loop for i = (ll::tail ll) then (ll::prev i)
+       for current = (1- (ll::size ll)) then (1- current)
        while i
        for data = (ll::data i)
        do
-         (progn
-           (update (ir::r3 data) current)
-           (unless (string= (ir::opcode data) "store")
-             (kill (ir::r3 data)))
-           (update (ir::r2 data) current)
-           (update (ir::r1 data) current)
-           (decf current)
-           (when (> *current-live* *max-live*)
-             (setq *max-live* *current-live*)))))
+         (update-line data current)))
   ll)
