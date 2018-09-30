@@ -29,7 +29,7 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../../../../students/lab2/code_check_1/cc2.i")))
+  (let* ((ir (parser:parse-file "../../../../../students/lab2/code_check_1/cc2.i")))
     (allocator:allocate-registers ir 7)
     (ir::output-ir ir #'ir::physical)))
 
