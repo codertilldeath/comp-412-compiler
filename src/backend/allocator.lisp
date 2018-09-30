@@ -119,7 +119,22 @@
                                       :physical dest)))
     ll))
 
+(defun safety-check ()
+  (loop for i from 0 to (1- (car (array-dimensions *VR-to-PR*)))
+     do
+       (if (and (not (= -1 (aref *VR-to-PR* i)))
+                (not (= (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i)))
+                        i)))
+           (print "We have a problem!")))
+  (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
+     do
+       (if (and (not (= -1 (ir::virtual (aref *PR-to-VR* i))))
+                (not (= (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))
+                        i)))
+           (print "We have a problem!"))))
+
 (defun allocate-unsafe (ll ir register rcount)
+  ;; (safety-check)
   (let ((v (ir::virtual register))
         spilled)
     (unless (= -1 v)
@@ -133,12 +148,27 @@
             (ll:insert-before ll ir (generate-spill to-spill rcount))
             (associate register reg)
             (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)
-            (setf spilled t)))
+            (setf spilled t)
+            (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)))
         (when (and (not spilled)
                    (aref *VR-spilled?* v))
-          (ll:insert-before ll ir
-                            (generate-restore register rcount (get-pr v)))
-          (setf (aref *VR-spilled?* v) nil)))
+          (if-let (reg (pop *regs*))
+            (progn 
+              (format t "Restoring vr~a => pr~a~%" v (get-pr v))
+              (ll:insert-before ll ir
+                                (generate-restore register rcount reg))
+              (setf (aref *VR-spilled?* v) nil))
+            (let* ((reg (spill-a-register))
+                   (to-spill (aref *PR-to-VR* reg)))
+              (disassociate to-spill reg)
+              (ll:insert-before ll ir (generate-spill to-spill rcount))
+              (associate register reg)
+              (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)
+              (setf spilled t)
+              (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)
+              (format t "Restoring vr~a => pr~a~%" v (get-pr v))
+              (ll:insert-before ll ir
+                                (generate-restore register rcount reg))))))
       ;; Set the register
       (setf (ir::physical register) (get-pr v))
       ;; Update next-use, because the "when" above prevents uses from updating
@@ -158,7 +188,8 @@
          (allocate-unsafe ir i (ir::r2 data) registers)
          (clear-last-use (ir::r2 data))
          (clear-last-use (ir::r1 data))
-         (allocate-unsafe ir i (ir::r3 data) registers)))
+         (allocate-unsafe ir i (ir::r3 data) registers)
+))
   ir)
 
 (defun allocate-registers (ir registers)

@@ -1,16 +1,21 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../../../../../students/lab2/code_check_1/cc1.i")))
-    (allocator:allocate-registers ir 5)
+  (let* ((ir (parser:parse-file "../../../../../students/lab2/code_check_1/cc2.i")))
+    (allocator:allocate-registers ir 7)
     (ir::output-ir ir #'ir::physical)))
 
+(progn
+  (global:compile-start)
+  (let* ((ir (parser:parse-file "../../../../../students/lab2/code_check_1/cc2.i")))
+    (renamer:rename-registers ir)
+    (ir::output-ir ir #'ir::virtual)))
 
 (progn
   (global:compile-start)
   (let* ((ir (parser:parse-file "../../test/example2.i")))
     (renamer:rename-registers ir)
-    (ir::output-ir-table ir )))
+    (ir::output-ir-table ir)))
 
 
 (progn
