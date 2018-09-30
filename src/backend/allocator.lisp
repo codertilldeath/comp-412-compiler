@@ -132,7 +132,7 @@
             (disassociate to-spill reg)
             (ll:insert-before ll ir (generate-spill to-spill rcount))
             (associate register reg)
-            (setf (aref *VR-spilled?* v) t)
+            (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)
             (setf spilled t)))
         (when (and (not spilled)
                    (aref *VR-spilled?* v))
