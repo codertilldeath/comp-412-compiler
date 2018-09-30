@@ -74,7 +74,7 @@
 
 ;; (print (get-a-register))
 
-(defun spill-a-register ()
+(defun choose-spill-register ()
     (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
        for max = (list i (aref *PR-to-VR* i))
        then
@@ -142,7 +142,7 @@
       (when (= -1 (aref *VR-to-PR* v))
         (if-let (reg (pop *regs*))
           (associate register reg)
-          (let* ((reg (spill-a-register))
+          (let* ((reg (choose-spill-register))
                  (to-spill (aref *PR-to-VR* reg)))
             (disassociate to-spill reg)
             (ll:insert-before ll ir (generate-spill to-spill rcount))
@@ -158,14 +158,14 @@
               ;; (format t "Restoring vr~a => pr~a~%" v (get-pr v))
               (ll:insert-before ll ir
                                 (generate-restore register rcount reg))
-              (setf (aref *VR-spilled?* v) nil))
-            (let* ((reg (spill-a-register))
+              (setf (aref *VR-spilled?* v) nil)
+              (associate register reg))
+            (let* ((reg (choose-spill-register))
                    (to-spill (aref *PR-to-VR* reg)))
               (disassociate to-spill reg)
               (ll:insert-before ll ir (generate-spill to-spill rcount))
               (associate register reg)
               (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)
-              (setf spilled t)
               ;; (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)
               ;; (format t "Restoring vr~a => pr~a~%" v (get-pr v))
               (ll:insert-before ll ir
