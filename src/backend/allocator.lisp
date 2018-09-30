@@ -169,7 +169,8 @@
               ;; (format t "Spilling vr~a, pr~a~%" (ir::virtual to-spill) reg)
               ;; (format t "Restoring vr~a => pr~a~%" v (get-pr v))
               (ll:insert-before ll ir
-                                (generate-restore register rcount reg))))))
+                                (generate-restore register rcount reg))
+              (setf (aref *VR-spilled?* v) nil)))))
       ;; Set the register
       (setf (ir::physical register) (get-pr v))
       ;; Update next-use, because the "when" above prevents uses from updating
