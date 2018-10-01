@@ -33,6 +33,17 @@
     (allocator:allocate-registers ir 5)
     (ir::output-ir ir #'ir::physical)))
 
+(require 'sb-sprof)
+
+(let ((ir (parser:parse-file "../../../../students/lab2/timing/T128k.i")))
+  (time (allocator:allocate-registers ir 5))
+  (sb-sprof:with-profiling (:report :graph)
+    (allocator:allocate-registers ir 5))
+    nil)
+
+(sb-sprof:with-profiling (:report :flat)
+  (let ((ir (parser:parse-file "../../../../students/lab2/timing/T128k.i")))))
+
 global:*max-live*
 global:*max-register*
 
