@@ -7,11 +7,13 @@ QLSOFT = $(QL)/dists/quicklisp/software
 
 all: binary
 
-binary: $(BUILDDIR)/412fe
+debug: $(BUILDDIR)/debug
+
+binary: $(BUILDDIR)/412fealloc
 
 # Remove binaries and fasl compiled files
 clean:
-	rm build/412fe
+	rm build/412fealloc
 	find . -name "*.fasl" -type f -delete
 
 # Remove everything, including libraries
@@ -33,7 +35,7 @@ $(BUILDDIR)/debug: alexandria
 		--eval '(asdf:make :412fe)' \
 		--eval '(quit)'
 
-$(BUILDDIR)/412fe: alexandria
+$(BUILDDIR)/412fealloc: alexandria
 	$(EXE) $(FLAGS) \
 		--load ./build/quicklisp/setup.lisp \
 		--load ./src/412fe-superspeed.asd \
