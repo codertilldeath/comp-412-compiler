@@ -45,7 +45,9 @@
     (link-nodes tl ll-node)
     (if bf
         (link-nodes bf hd)
-        (setf (head ll1) hd))))
+        (setf (head ll1) hd))
+    (setf (size ll1) (+ (size ll1)
+                        (size ll2)))))
 
 (defun insert-after (ll1 ll-node ll2)
   (let ((hd (head ll2))
@@ -54,7 +56,9 @@
     (link-nodes ll-node hd)
     (if af
         (link-nodes tl af)
-        (setf (tail ll1) tl))))
+        (setf (tail ll1) tl))
+    (setf (size ll1) (+ (size ll1)
+                        (size ll2)))))
 
 ;; Testing
 ;; (let ((ll (make-LL))
@@ -71,4 +75,4 @@
 ;;   (insert-back ll3 8)
 ;;   (insert-before ll (head ll) ll2)
 ;;   (insert-after ll (tail ll) ll3)
-;;   ll)
+;;   (size ll))
