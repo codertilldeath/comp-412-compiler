@@ -74,7 +74,7 @@
 
 ;; (print (get-a-register))
 
-(defun spill-a-register ()
+(defun choose-spill-register ()
     (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
        for max = (list i (aref *PR-to-VR* i))
        then
