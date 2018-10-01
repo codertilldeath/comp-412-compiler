@@ -4,6 +4,7 @@ FLAGS = --no-userinit --no-sysinit --non-interactive
 BUILDDIR = ./build
 QL = $(BUILDDIR)/quicklisp
 QLSOFT = $(QL)/dists/quicklisp/software
+LIBS=$(BUILDDIR)/libs.stamp
 
 all: binary
 
@@ -20,7 +21,7 @@ clean:
 cleanall: clean
 	rm -r build
 
-alexandria: $(QLSOFT)/alexandria-20170830-git
+alexandria: $(LIBS)
 
 quicklisp: $(QL)/setup.lisp
 
@@ -45,11 +46,12 @@ $(BUILDDIR)/412fealloc: alexandria
 		--eval '(asdf:make :412fe-superspeed)' \
 		--eval '(quit)'
 
-$(QLSOFT)/alexandria-20170830-git: quicklisp
+$(LIBS): quicklisp
 	$(EXE) $(FLAGS) \
 		--load ./build/quicklisp/setup.lisp \
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(quit)'
+	touch $@
 
 $(QL)/quicklisp.lisp:
 	mkdir build
