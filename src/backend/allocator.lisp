@@ -119,6 +119,20 @@
                                       :physical dest)))
     ll))
 
+(defun safety-check (linum)
+  (loop for i from 0 to (1- (car (array-dimensions *VR-to-PR*)))
+     do
+       (if (and (not (= -1 (aref *VR-to-PR* i)))
+                (not (= (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i)))
+                        i)))
+           (format t "We have a problem! Line number ~a! vr~a does not match pr~a!~%" linum i (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i))))))
+  (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
+     do
+       (if (and (not (= -1 (ir::virtual (aref *PR-to-VR* i))))
+                (not (= (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))
+                        i)))
+           (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
+
 (defun get-register-or-spill (ll ir rcount)
   (if-let (reg (pop *regs*))
     reg
@@ -151,15 +165,22 @@
         *VR-spilled?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
         *regs* (number-list 0 (1- registers)))
   (loop for i = (ll::head ir) then (ll::next i)
+     for iter from 0
      while i
      for data = (ll::data i)
      do
-       (progn
-         (allocate-unsafe ir i (ir::r1 data) registers)
-         (allocate-unsafe ir i (ir::r2 data) registers)
-         (clear-last-use (ir::r2 data))
-         (clear-last-use (ir::r1 data))
-         (allocate-unsafe ir i (ir::r3 data) registers)))
+       (if (string= (ir::opcode data) "store")
+           (progn
+             (allocate-unsafe ir i (ir::r1 data) registers)
+             (allocate-unsafe ir i (ir::r3 data) registers)
+             (clear-last-use (ir::r3 data))
+             (clear-last-use (ir::r1 data)))
+           (progn
+             (allocate-unsafe ir i (ir::r1 data) registers)
+             (allocate-unsafe ir i (ir::r2 data) registers)
+             (clear-last-use (ir::r2 data))
+             (clear-last-use (ir::r1 data))
+             (allocate-unsafe ir i (ir::r3 data) registers))))
   ir)
 
 (defun allocate-registers (ir registers)
