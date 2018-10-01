@@ -1,3 +1,7 @@
+(declaim ((simple-array fixnum (129)) *map-to*))
+(declaim ((simple-array fixnum (44 129)) *table*))
+(declaim ((simple-array fixnum (44 2)) *table-min*))
+
 (in-package :scanner-table)
 
 (defparameter *map-to*

@@ -39,8 +39,8 @@
 (loop for i from 0 to 127
       when (not (alphanum-p (code-char i)))
         do
-           (loop for type from (index-of :memop) to (index-of :register) do
-             (setf (aref *valid-terminators* type i)
+           (loop for type fixnum from (index-of :memop) to (index-of :register) do
+             (setf (aref (the (simple-array t (14 129)) *valid-terminators*) type i)
                    t)))
 
 ;; COMMA
@@ -55,8 +55,8 @@
 
 ;; In the context of these two, anything is a terminator
 (loop for i from 0 to 127 do
-  (loop for type from (index-of :comma) to (index-of :newline) do
-    (setf (aref *valid-terminators* type i)
+  (loop for type fixnum from (index-of :comma) to (index-of :newline) do
+    (setf (aref (the (simple-array t (14 129)) *valid-terminators*) type i)
           t)))
 
 ;; Comments
@@ -79,5 +79,7 @@
                  t))
 
 (defun lookup (s)
-  (when (< s (car (array-dimensions *parts-of-speech*) ))
+  (declare ((simple-vector 14) *parts-of-speech*)
+           (fixnum s))
+  (when (< s (the fixnum (car (array-dimensions *parts-of-speech*) )))
     (aref *parts-of-speech* s)))
