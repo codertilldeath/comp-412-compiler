@@ -5,6 +5,9 @@ BUILDDIR = ./build
 QL = $(BUILDDIR)/quicklisp
 LIBS= $(BUILDDIR)/libs.stamp
 
+.PHONY: all clean cleanall
+all: $(BUILDDIR)/412fealloc
+
 $(BUILDDIR)/412fealloc: $(LIBS)
 	$(EXE) $(FLAGS) \
 		--load $(QL)/setup.lisp \
