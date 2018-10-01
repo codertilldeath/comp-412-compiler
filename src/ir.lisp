@@ -100,9 +100,9 @@
 
 (defun output-instruction (data f)
   (case (category data)
-         (:memop (format t "~a r~a => r~a~%" (opcode data) (abs (funcall f (r1 data))) (abs (funcall f (r3 data)))))
-         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (abs (funcall f (r3 data)))))
-         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (abs (funcall f (r1 data))) (abs (funcall f (r2 data))) (abs (funcall f (r3 data)))))
+         (:memop (format t "~a r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r3 data))))
+         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (funcall f (r3 data))))
+         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r2 data)) (funcall f (r3 data))))
          (:output (format t "output ~a~%" (constant data)))
          (:nop (format t "nop~%"))))
 

@@ -21,8 +21,16 @@
 * DONE Count the number of registers, max
   CLOSED: [2018-09-29 Sat 15:31]
   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:31]
-* TODO Calculate MAXLIVE
+* DONE Calculate MAXLIVE
+  CLOSED: [2018-09-30 Sun 23:49]
+  - State "DONE"       from "TODO"       [2018-09-30 Sun 23:49]
 * TODO Remove IR's dependency on table:lookup
-* TODO Remove abs from output-ir
+* DONE Remove abs from output-ir
+  CLOSED: [2018-09-30 Sun 23:49]
+  - State "DONE"       from "TODO"       [2018-09-30 Sun 23:49]
 * TODO Maybe if next use is on the same line, don't count that one
-* TODO [#A] Start on register spilling. Loop through physical registers
+* DONE [#A] Start on register spilling. Loop through physical registers
+  CLOSED: [2018-09-30 Sun 23:48]
+  - State "DONE"       from "TODO"       [2018-09-30 Sun 23:48]
+* TODO Keep track of clean values that don't need re-spilling
+* TODO Keep track of rematerializable values 
