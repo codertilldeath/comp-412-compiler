@@ -14,6 +14,8 @@
 (defparameter *VR-name* nil)
 
 (defun update (register count)
+  (declare ((simple-array fixnum *) *SR-to-VR* *last-use*)
+           (fixnum *VR-name* *current-live*))
   (let ((s (ir::source register)))
     (unless (= s -1)
       (when (= (aref *SR-to-VR* s) -1)
@@ -29,6 +31,8 @@
       (setf (aref *last-use* s) count))))
 
 (defun kill (ir)
+  (declare (fixnum *current-live*)
+           ((simple-array fixnum *) *SR-to-VR* *last-use*))
   (let ((s (ir::source ir)))
     (unless (= s -1)
       (decf *current-live*)
@@ -36,6 +40,7 @@
       (setf (aref *last-use* s) -1))))
 
 (defun update-line (data current)
+  (declare (fixnum *current-live* *max-live*))
   (update (ir::r3 data) current)
   (unless (string= (ir::opcode data) "store")
     (kill (ir::r3 data)))
@@ -48,11 +53,10 @@
   (setf *VR-name* 0
         *last-use* (make-array *max-register* :element-type 'fixnum :initial-element -1)
         *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1))
-  (let ((current (1- (ll::size ll))))
     (loop for i = (ll::tail ll) then (ll::prev i)
-       for current = (1- (ll::size ll)) then (1- current)
+       for current fixnum = (1- (ll::size ll)) then (1- current)
        while i
        for data = (ll::data i)
        do
-         (update-line data current)))
+         (update-line data current))
   ll)

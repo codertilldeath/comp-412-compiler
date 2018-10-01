@@ -11,12 +11,14 @@
 (defstruct (LL :conc-name
                (:print-function
                 (lambda (struct stream z)
+                  (declare (ignore stream z))
                   (print (to-list struct)))))
   head tail (size 0 :type fixnum))
 
 (defstruct (ll-node :conc-name
                     (:print-function
                      (lambda (struct stream z)
+                       (declare (ignore stream z))
                        (print (data struct)))))
   data prev next)
 

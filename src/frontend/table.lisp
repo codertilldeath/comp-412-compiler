@@ -5,8 +5,7 @@
            :*start-state*
            :*valid-lexemes*
            :*valid-terminators*
-           :*table*
-           :get-example))
+           :*table*))
 
 (in-package :scanner-table)
 

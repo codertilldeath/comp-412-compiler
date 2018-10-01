@@ -2,8 +2,7 @@
   (:use :cl)
   (:import-from :scanner-table
    :lookup
-   :index-of
-                :get-example)
+   :index-of)
   (:export :any-errors
            :report-lex-error
            :report-eof-error
@@ -44,9 +43,6 @@
 (defun print-sentence (sentence)
   (loop for (p . lex) in sentence
      do (format t "~a " lex)))
-
-(defun print-example (s)
-  (format t "Example:~%~{~a~}~%" (mapcar #'get-example s)))
 
 (defun lex-error (result)
   (let (word)

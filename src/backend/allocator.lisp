@@ -17,22 +17,29 @@
 (defparameter *VR-spilled?* nil)
 
 (defun number-list (iter num)
+  (declare (fixnum iter num))
   (if (= iter num)
       '()
       (cons iter (number-list (1+ iter) num))))
 
 (defun associate (vr pr)
+  (declare ((simple-array fixnum *) *VR-to-PR*)
+           ((simple-array ir::register *) *PR-to-VR*))
   (setf (aref *VR-to-PR* (ir::virtual vr)) pr)
   (setf (aref *PR-to-VR* pr) vr))
 
 (defun disassociate (vr pr)
+  (declare ((simple-array fixnum *) *VR-to-PR*)
+           ((simple-array ir::register *) *PR-to-VR*))
   (setf (aref *VR-to-PR* (ir::virtual vr)) -1)
   (setf (aref *PR-to-VR* pr) (ir::make-Register)))
 
 (defun get-pr (vr)
+  (declare ((simple-array fixnum *) *VR-to-PR*))
   (aref *VR-to-PR* vr))
 
 (defun allocate-safe (register)
+  (declare ((simple-array fixnum *) *VR-to-PR*))
   (let ((v (ir::virtual register)))
     (unless (= -1 v)
       ;; First time using or defining VR
@@ -75,7 +82,9 @@
 ;; (print (get-a-register))
 
 (defun choose-spill-register ()
-    (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
+  (declare ((simple-array fixnum *) *VR-to-PR*)
+           ((simple-array ir::register *) *PR-to-VR*))
+    (loop for i fixnum from 0 to (1- (the fixnum (car (array-dimensions *PR-to-VR*))))
        for max = (list i (aref *PR-to-VR* i))
        then
          (let ((new (aref *PR-to-VR* i)))
@@ -88,10 +97,11 @@
 
 
 (defun generate-spill (register regs)
+  (declare (fixnum regs))
   (let ((ll (ll:make-LL)))
     (ll:insert-back ll (ir::make-IR :opcode "loadI"
                                  :category :loadI
-                                 :constant (+ 32764 (* (ir::virtual register) 4))
+                                 :constant (+ 32764 (the fixnum (* (ir::virtual register) 4)))
                                  :r3 (ir::make-Register
                                       :physical (1- regs))))
     (ll:insert-back ll (ir::make-IR :opcode "store"
@@ -104,11 +114,12 @@
 
 
 (defun generate-restore (register regs dest)
+  (declare (fixnum regs))
   (let ((ll (ll:make-LL)))
     (ll:insert-back ll (ir::make-IR :opcode "loadI"
                                  :category :loadI
                                  :constant (+ 32764
-                                              (* (ir::virtual register) 4))
+                                              (the fixnum (* (ir::virtual register) 4)))
                                  :r3 (ir::make-Register
                                       :physical (1- regs))))
     (ll:insert-back ll (ir::make-IR :opcode "load"
@@ -119,21 +130,23 @@
                                       :physical dest)))
     ll))
 
-(defun safety-check (linum)
-  (loop for i from 0 to (1- (car (array-dimensions *VR-to-PR*)))
-     do
-       (if (and (not (= -1 (aref *VR-to-PR* i)))
-                (not (= (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i)))
-                        i)))
-           (format t "We have a problem! Line number ~a! vr~a does not match pr~a!~%" linum i (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i))))))
-  (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
-     do
-       (if (and (not (= -1 (ir::virtual (aref *PR-to-VR* i))))
-                (not (= (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))
-                        i)))
-           (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
+;; (defun safety-check (linum)
+;;   (loop for i from 0 to (1- (car (array-dimensions *VR-to-PR*)))
+;;      do
+;;        (if (and (not (= -1 (aref *VR-to-PR* i)))
+;;                 (not (= (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i)))
+;;                         i)))
+;;            (format t "We have a problem! Line number ~a! vr~a does not match pr~a!~%" linum i (ir::virtual (aref *PR-to-VR* (aref *VR-to-PR* i))))))
+;;   (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
+;;      do
+;;        (if (and (not (= -1 (ir::virtual (aref *PR-to-VR* i))))
+;;                 (not (= (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))
+;;                         i)))
+;;            (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
 
 (defun get-register-or-spill (ll ir rcount)
+  (declare ((simple-array ir::register *) *PR-to-VR*)
+           ((simple-array boolean *) *VR-spilled?*))
   (if-let (reg (pop *regs*))
     reg
     (let* ((reg (choose-spill-register))
@@ -144,6 +157,9 @@
       reg)))
 
 (defun allocate-unsafe (ll ir register rcount)
+  (declare ((simple-array fixnum *) *VR-to-PR*)
+           ((simple-array ir::register *) *PR-to-VR*)
+           ((simple-array boolean *) *VR-spilled?*))
   (let ((v (ir::virtual register)))
     (unless (= -1 v)
       ;; First time using or defining VR
@@ -165,7 +181,7 @@
         *VR-spilled?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
         *regs* (number-list 0 (1- registers)))
   (loop for i = (ll::head ir) then (ll::next i)
-     for iter from 0
+     for iter fixnum from 0
      while i
      for data = (ll::data i)
      do
@@ -184,6 +200,7 @@
   ir)
 
 (defun allocate-registers (ir registers)
+  (declare (fixnum *max-live* registers))
   (rename-registers ir)
   (if (<= *max-live* registers)
       (allocate-full ir registers)

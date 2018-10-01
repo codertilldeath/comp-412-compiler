@@ -41,8 +41,9 @@
     acc))
 
 (defun register->int (r)
-  (declare ((vector character *) r))
-  (let ((num (str->int (subseq r 1))))
+  (declare ((vector character *) r)
+           (fixnum *max-register*))
+  (let ((num (the fixnum (str->int (subseq r 1)))))
     (when (> (1+ num) *max-register*)
       (setq *max-register* (1+ num)))
     (make-Register :source num)))
@@ -99,6 +100,7 @@
           (r3 i)))
 
 (defun output-instruction (data f)
+  (declare (function f))
   (case (category data)
          (:memop (format t "~a r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r3 data))))
          (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (funcall f (r3 data))))
@@ -114,6 +116,7 @@
        (output-instruction data f)))
 
 (defun z (n)
+  (declare (fixnum n))
   (if (< n 0)
       "-"
       n))
