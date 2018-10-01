@@ -3,42 +3,11 @@ FLAGS = --no-userinit --no-sysinit --non-interactive
 
 BUILDDIR = ./build
 QL = $(BUILDDIR)/quicklisp
-QLSOFT = $(QL)/dists/quicklisp/software
-LIBS=$(BUILDDIR)/libs.stamp
+LIBS= $(BUILDDIR)/libs.stamp
 
-all: binary
-
-debug: $(BUILDDIR)/debug
-
-binary: $(BUILDDIR)/412fealloc
-
-# Remove binaries and fasl compiled files
-clean:
-	rm build/412fealloc
-	find . -name "*.fasl" -type f -delete
-
-# Remove everything, including libraries
-cleanall: clean
-	rm -r build
-
-alexandria: $(LIBS)
-
-quicklisp: $(QL)/setup.lisp
-
-# Make executable with full debug support and slower execution time
-$(BUILDDIR)/debug: alexandria
+$(BUILDDIR)/412fealloc: $(LIBS)
 	$(EXE) $(FLAGS) \
-		--load ./build/quicklisp/setup.lisp \
-		--load ./src/412fe.asd \
-		--eval '(ql:quickload :alexandria)' \
-		--eval '(asdf:disable-output-translations)' \
-		--eval '(asdf:load-system :412fe)' \
-		--eval '(asdf:make :412fe)' \
-		--eval '(quit)'
-
-$(BUILDDIR)/412fealloc: alexandria
-	$(EXE) $(FLAGS) \
-		--load ./build/quicklisp/setup.lisp \
+		--load $(QL)/setup.lisp \
 		--load ./src/412fe-superspeed.asd \
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(asdf:disable-output-translations)' \
@@ -46,9 +15,31 @@ $(BUILDDIR)/412fealloc: alexandria
 		--eval '(asdf:make :412fe-superspeed)' \
 		--eval '(quit)'
 
-$(LIBS): quicklisp
+# Make executable with full debug support and slower execution time
+$(BUILDDIR)/debug: $(LIBS)
 	$(EXE) $(FLAGS) \
-		--load ./build/quicklisp/setup.lisp \
+		--load $(QL)/setup.lisp \
+		--load ./src/412fe.asd \
+		--eval '(ql:quickload :alexandria)' \
+		--eval '(asdf:disable-output-translations)' \
+		--eval '(asdf:load-system :412fe)' \
+		--eval '(asdf:make :412fe)' \
+		--eval '(quit)'
+
+
+# Remove binaries and fasl compiled files
+clean:
+	rm -f $(BUILDDIR)/412fealloc
+	rm -f $(BUILDDIR)/debug
+	find . -name "*.fasl" -type f -delete
+
+# Remove everything, including libraries
+cleanall: clean
+	rm -rf build
+
+$(LIBS): $(QL)/setup.lisp
+	$(EXE) $(FLAGS) \
+		--load $(QL)/setup.lisp \
 		--eval '(ql:quickload :alexandria)' \
 		--eval '(quit)'
 	touch $@
@@ -60,6 +51,6 @@ $(QL)/quicklisp.lisp:
 
 $(QL)/setup.lisp: $(QL)/quicklisp.lisp
 	$(EXE) $(FLAGS) \
-		--load ./build/quicklisp/quicklisp.lisp \
-		--eval '(quicklisp-quickstart:install :path "./build/quicklisp")' \
+		--load $(QL)/quicklisp.lisp \
+		--eval '(quicklisp-quickstart:install :path "$(BUILDDIR)/quicklisp")' \
 		--eval '(quit)'
