@@ -19,6 +19,7 @@
   (opcode "" :type string)
   (category nil :type symbol)
   (constant -1 :type fixnum)
+  (store nil :type boolean)
   (r1 (make-Register) :type Register)
   (r2 (make-Register) :type Register)
   (r3 (make-Register) :type Register))
@@ -52,6 +53,7 @@
     (declare (ignore _o _r1 _i _r2 _into _rest))
     (make-IR :opcode opcode
              :category :memop
+             :store (eq (char opcode 0) #\s)
              :r1 (register->int reg1)
              :r3 (register->int reg2))))
 

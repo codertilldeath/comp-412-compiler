@@ -169,7 +169,8 @@
      while i
      for data = (ll::data i)
      do
-       (if (string= (ir::opcode data) "store")
+       (if (and (eq :memop (ir::category data))
+                (ir::store data))
            (progn
              (allocate-unsafe ir i (ir::r1 data) registers)
              (allocate-unsafe ir i (ir::r3 data) registers)
