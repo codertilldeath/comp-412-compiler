@@ -95,17 +95,18 @@
                      (setf max-register i))))))
     (or max-remat max-register)))
 
-(defun get-register-or-spill (ll ir rcount dont-use)
+(defun get-register-or-spill (ll ir rcount dont-use linum)
   (if-let (reg (pop *register-stack*))
     reg
     (let* ((pr (choose-spill-register dont-use))
-           (vr (aref *PR-to-VR* pr)))
-      (if (eq (ir::opcode (ll::data (aref *VR-definst* vr)))
-              :|loadI|)
+           (vr (aref *PR-to-VR* pr))
+           (inst (ll::data (aref *VR-definst* vr))))
+      (if (eq (ir::opcode inst) :|loadI|)
           ;; Rematerializeable
           (progn
             ;; Remove the loadI instruction
-            ;; (ll:del ll (aref *VR-definst* vr))
+            (when (< linum (ir::next-use (ir::r3 inst)))
+              (ll:del ll (aref *VR-definst* vr)))
             )
           ;; Regular spill
           (progn
@@ -117,13 +118,13 @@
       (disassociate-unsafe vr pr)
       pr)))
 
-(defun allocate-unsafe (ll ir register rcount dont-use)
+(defun allocate-unsafe (ll ir register rcount dont-use linum)
   (let ((v (ir::virtual register)))
     (unless (= -1 v)
       ;; First time using or defining VR
       (when (= -1 (aref *VR-to-PR* v))
         ;; def
-        (let ((reg (get-register-or-spill ll ir rcount dont-use)))
+        (let ((reg (get-register-or-spill ll ir rcount dont-use linum)))
           (associate-unsafe register reg))
         ;; restore
         (when (aref *VR-spilled?* v)
@@ -161,11 +162,11 @@
      while i
      for data = (ll::data i)
      do
-       (allocate-unsafe ir i (ir::r1 data) registers -1)
-       (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)))
+       (allocate-unsafe ir i (ir::r1 data) registers -1 iter)
+       (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)) iter)
        (clear-last-use (ir::r2 data))
        (clear-last-use (ir::r1 data))
-       (allocate-unsafe ir i (ir::r3 data) registers -1)
+       (allocate-unsafe ir i (ir::r3 data) registers -1 iter)
        (set-definst i))
   ir)
 
