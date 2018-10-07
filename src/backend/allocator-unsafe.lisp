@@ -69,19 +69,31 @@
 ;;            (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
 
 (defun choose-spill-register (dont-use)
-  (let (max-next-use max-register)
+  (let (max-next-use max-register
+        max-nu-remat max-remat)
     (loop for i from 0 to (- (car (array-dimensions *PR-to-VR*)) 2)
        do
          (unless (= dont-use i)
-           (if (null max-next-use)
-               (progn
-                 (setf max-next-use (aref *PR-next-use* i))
-                 (setf max-register i))
-               (when (> (aref *PR-next-use* i)
-                        max-next-use)
-                   (setf max-next-use (aref *PR-next-use* i))
-                   (setf max-register i)))))
-    max-register))
+           (if (eq (ir::opcode (ll::data (aref *VR-definst* (aref *PR-to-VR* i))))
+                   :|loadI|)
+               ;; Rematerializeable
+               (if (null max-nu-remat)
+                   (progn
+                     (setf max-nu-remat (aref *PR-next-use* i))
+                     (setf max-remat i))
+                   (when (> (aref *PR-next-use* i)
+                            max-nu-remat)
+                     (setf max-nu-remat (aref *PR-next-use* i))
+                     (setf max-remat i)))
+               (if (null max-next-use)
+                   (progn
+                     (setf max-next-use (aref *PR-next-use* i))
+                     (setf max-register i))
+                   (when (> (aref *PR-next-use* i)
+                            max-next-use)
+                     (setf max-next-use (aref *PR-next-use* i))
+                     (setf max-register i))))))
+    (or max-remat max-register)))
 
 (defun get-register-or-spill (ll ir rcount dont-use)
   (if-let (reg (pop *register-stack*))
