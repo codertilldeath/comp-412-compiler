@@ -51,13 +51,13 @@
 (defun make-memop (i)
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
-    (if (eq opcode :store)
-        (make-IR :opcode opcode
+    (if (eq (char opcode 0) #\s)
+        (make-IR :opcode (intern opcode "KEYWORD")
                  :category :memop
                  :store t
                  :r1 (register->int reg1)
                  :r2 (register->int reg2))
-        (make-IR :opcode opcode
+        (make-IR :opcode (intern opcode "KEYWORD")
                  :category :memop
                  :r1 (register->int reg1)
                  :r3 (register->int reg2)))))
@@ -65,7 +65,7 @@
 (defun make-loadi (i)
   (destructuring-bind ((_o . opcode) (_r1 . constant) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
-    (make-IR :opcode opcode
+    (make-IR :opcode (intern opcode "KEYWORD")
              :category :loadi
              :constant (str->int constant)
              :r3 (register->int reg2))))
@@ -73,7 +73,7 @@
 (defun make-arithop (i)
   (destructuring-bind ((_o . opcode) (_r1 . r1) (_c . _comma) (_r2 . r2) (_i . _into) (_r3 . reg3) . _rest) i
     (declare (ignore _o _r1 _i _r2 _r3 _c _into _comma _rest))
-    (make-IR :opcode opcode
+    (make-IR :opcode (intern opcode "KEYWORD")
              :category :arithop
              :r1 (register->int r1)
              :r2 (register->int r2)
@@ -82,7 +82,7 @@
 (defun make-output (i)
   (destructuring-bind ((_o . opcode) (_c . constant) . _rest) i
     (declare (ignore _o _c _rest))
-    (make-IR :opcode opcode
+    (make-IR :opcode (intern opcode "KEYWORD")
              :category :output
              :constant (str->int constant))))
 

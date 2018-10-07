@@ -22,12 +22,12 @@
 
 (defun generate-spill (vr pr regs)
   (let ((ll (ll:make-LL)))
-    (ll:insert-back ll (ir::make-IR :opcode :loadI
+    (ll:insert-back ll (ir::make-IR :opcode :|loadI|
                                  :category :loadI
                                  :constant (+ 32764 (* vr 4))
                                  :r3 (ir::make-Register
                                       :physical (1- regs))))
-    (ll:insert-back ll (ir::make-IR :opcode :store
+    (ll:insert-back ll (ir::make-IR :opcode :|store|
                                  :category :memop
                                  :r1 (ir::make-Register
                                       :virtual vr
@@ -40,13 +40,13 @@
 
 (defun generate-restore (vr spill-register dest)
   (let ((ll (ll:make-LL)))
-    (ll:insert-back ll (ir::make-IR :opcode :loadI
+    (ll:insert-back ll (ir::make-IR :opcode :|loadI|
                                  :category :loadI
                                  :constant (+ 32764
                                               (* vr 4))
                                  :r3 (ir::make-Register
                                       :physical spill-register)))
-    (ll:insert-back ll (ir::make-IR :opcode :load
+    (ll:insert-back ll (ir::make-IR :opcode :|load|
                                  :category :memop
                                  :r1 (ir::make-Register
                                       :physical spill-register)
