@@ -4,6 +4,6 @@ ssh bc29@ssh.clear.rice.edu -t "bash" << EOF
     make clean > /dev/null
     make > /dev/null 2>&1 
     cd test/lab2_report/
-    ../../scripts/MyScript
+    ../../scripts/FormatOutput
     exit
 EOF
