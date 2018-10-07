@@ -38,7 +38,7 @@ for i in range(0,7):
     print("|")
     print("|", end='')
     for j in range(0,6):
-        print("|%.1f" % percent_improvement(refRes[i][j], cycles[i][j]), end='')
+        print("|%.1f" % (percent_improvement(refRes[i][j], cycles[i][j]) * 100), end='')
     print("|")
     print("|-")
 
