@@ -51,11 +51,15 @@
 (defun make-memop (i)
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
-    (make-IR :opcode opcode
-             :category :memop
-             :store (eq (char opcode 0) #\s)
-             :r1 (register->int reg1)
-             :r3 (register->int reg2))))
+    (if (eq (char opcode 0) #\s)
+        (make-IR :opcode opcode
+                 :category :memop
+                 :r1 (register->int reg1)
+                 :r2 (register->int reg2))
+        (make-IR :opcode opcode
+                 :category :memop
+                 :r1 (register->int reg1)
+                 :r3 (register->int reg2)))))
 
 (defun make-loadi (i)
   (destructuring-bind ((_o . opcode) (_r1 . constant) (_i . _into) (_r2 . reg2) . _rest) i

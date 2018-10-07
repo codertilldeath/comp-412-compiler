@@ -37,8 +37,7 @@
 
 (defun update-line (data current)
   (update (ir::r3 data) current)
-  (unless (string= (ir::opcode data) "store")
-    (kill (ir::r3 data)))
+  (kill (ir::r3 data))
   (update (ir::r2 data) current)
   (update (ir::r1 data) current)
   (when (> *current-live* *max-live*)

@@ -124,19 +124,11 @@
      while i
      for data = (ll::data i)
      do
-       (if (and (eq :memop (ir::category data))
-                (ir::store data))
-           (progn
-             (allocate-unsafe ir i (ir::r1 data) registers -1)
-             (allocate-unsafe ir i (ir::r3 data) registers (ir::physical (ir::r1 data)))
-             (clear-last-use (ir::r3 data))
-             (clear-last-use (ir::r1 data)))
-           (progn
-             (allocate-unsafe ir i (ir::r1 data) registers -1)
-             (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)))
-             (clear-last-use (ir::r2 data))
-             (clear-last-use (ir::r1 data))
-             (allocate-unsafe ir i (ir::r3 data) registers -1))))
+       (allocate-unsafe ir i (ir::r1 data) registers -1)
+       (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)))
+       (clear-last-use (ir::r2 data))
+       (clear-last-use (ir::r1 data))
+       (allocate-unsafe ir i (ir::r3 data) registers -1)))
   ir)
 
 (defun allocate-registers (ir registers)
