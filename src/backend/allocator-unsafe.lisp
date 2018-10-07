@@ -3,6 +3,14 @@
 (defparameter *VR-spilled?* nil)
 (defparameter *remat?* nil)
 
+(defun associate-unsafe (register pr)
+  (setf (aref *VR-to-PR* (ir::virtual register)) pr)
+  (setf (aref *PR-to-VR* pr) register))
+
+(defun disassociate-unsafe (register pr)
+  (setf (aref *VR-to-PR* (ir::virtual register)) -1)
+  (setf (aref *PR-to-VR* pr) (ir::make-register)))
+
 (defun choose-spill-register ()
   (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
      for max = (list i (aref *PR-to-VR* i))
