@@ -93,6 +93,10 @@
                             max-next-use)
                      (setf max-next-use (aref *PR-next-use* i))
                      (setf max-register i))))))
+    ;; (when max-remat 
+    ;;   (format t "Max Remat: (VR, ~a) (PR, ~a) (Next-use, ~a)~%" (aref *PR-to-VR* max-remat) max-remat max-nu-remat))
+    ;; (when max-register
+    ;;   (format t "Max Reg: (VR, ~a) (PR, ~a) (Next-use, ~a)~%~%" (aref *PR-to-VR* max-register) max-register max-next-use))
     (cond ((null max-remat) max-register)
           ((null max-register) max-remat)
           ((and (aref *high-pressure-zones* max-nu-remat)
@@ -172,6 +176,7 @@
        (clear-last-use (ir::r2 data))
        (clear-last-use (ir::r1 data))
        (allocate-unsafe ir i (ir::r3 data) registers -1 iter)
+       (clear-last-use (ir::r3 data))
        (when (eq (ir::opcode data) :|nop|)
          (ll:del ir i))
        (set-definst i))
