@@ -1,2 +1,3 @@
 **/*.fasl
 build/
+scripts/log
