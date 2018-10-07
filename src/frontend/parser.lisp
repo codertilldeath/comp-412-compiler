@@ -38,8 +38,8 @@
         for p = (car lex)
         when (not (comment? p))
           collect lex
-        while (not (or (= p 9)
-                       (= p 13)))))
+        while (not (or (comment? p)
+                       (eof-char? p)))))
 
 (defun parse-file (file)
   (let ((success t)

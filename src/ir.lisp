@@ -16,7 +16,7 @@
   (next-use -1 :type fixnum))
 
 (defstruct (IR :conc-name)
-  (opcode "" :type string)
+  (opcode "" :type symbol)
   (category nil :type symbol)
   (constant -1 :type fixnum)
   (store nil :type boolean)
@@ -51,7 +51,7 @@
 (defun make-memop (i)
   (destructuring-bind ((_o . opcode) (_r1 . reg1) (_i . _into) (_r2 . reg2) . _rest) i
     (declare (ignore _o _r1 _i _r2 _into _rest))
-    (if (eq (char opcode 0) #\s)
+    (if (eq opcode :store)
         (make-IR :opcode opcode
                  :category :memop
                  :store t
@@ -92,7 +92,7 @@
     (:loadi (make-loadi i))
     (:arithop (make-arithop i))
     (:output (make-output i))
-    (:nop (make-IR :opcode "nop"
+    (:nop (make-IR :opcode :nop
                    :category :nop))))
 
 ;; (pprint-IR (make-internal '((0 . "loadI") (a . "r1") (b . "=>") (c . "r2") (d . ""))))

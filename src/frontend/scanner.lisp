@@ -50,4 +50,4 @@
                        (aref *table-min*
                              state
                              (aref *map-to* c))))))
-    (cons state fstr)))
+    (cons state (intern fstr "KEYWORD"))))

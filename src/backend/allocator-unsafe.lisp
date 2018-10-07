@@ -3,6 +3,14 @@
 (defparameter *VR-spilled?* nil)
 (defparameter *PR-next-use* nil)
 (defparameter *remat?* nil)
+(defparameter *VR-definst* nil)
+(defparameter *VR-clean?* nil)
+
+(defun set-definst (data)
+  (let* ((v (ir::virtual (ir::r3 data))))
+    (unless (= v -1)
+      (setf (aref *VR-definst* v)
+            data))))
 
 (defun associate-unsafe (register pr)
   (setf (aref *VR-to-PR* (ir::virtual register)) pr)
@@ -14,12 +22,12 @@
 
 (defun generate-spill (vr pr regs)
   (let ((ll (ll:make-LL)))
-    (ll:insert-back ll (ir::make-IR :opcode "loadI"
+    (ll:insert-back ll (ir::make-IR :opcode :loadI
                                  :category :loadI
                                  :constant (+ 32764 (* vr 4))
                                  :r3 (ir::make-Register
                                       :physical (1- regs))))
-    (ll:insert-back ll (ir::make-IR :opcode "store"
+    (ll:insert-back ll (ir::make-IR :opcode :store
                                  :category :memop
                                  :r1 (ir::make-Register
                                       :virtual vr
@@ -32,13 +40,13 @@
 
 (defun generate-restore (vr spill-register dest)
   (let ((ll (ll:make-LL)))
-    (ll:insert-back ll (ir::make-IR :opcode "loadI"
+    (ll:insert-back ll (ir::make-IR :opcode :loadI
                                  :category :loadI
                                  :constant (+ 32764
                                               (* vr 4))
                                  :r3 (ir::make-Register
                                       :physical spill-register)))
-    (ll:insert-back ll (ir::make-IR :opcode "load"
+    (ll:insert-back ll (ir::make-IR :opcode :load
                                  :category :memop
                                  :r1 (ir::make-Register
                                       :physical spill-register)
@@ -80,15 +88,18 @@
     reg
     (let* ((pr (choose-spill-register dont-use))
            (vr (aref *PR-to-VR* pr)))
-      (if (aref *remat?* vr)
+      (if nil
           ;; Rematerializeable
           (progn
             ;; Remove the loadI instruction
             )
           ;; Regular spill
           (progn
-            (ll:insert-before ll ir (generate-spill vr pr rcount))
-            (setf (aref *VR-spilled?* vr) t)))
+            (when (= (aref *VR-clean?* vr) -1)
+              ;; If value has been spilled before, don't spill again
+              (ll:insert-before ll ir (generate-spill vr pr rcount)))
+            (setf (aref *VR-spilled?* vr) t)
+            (setf (aref *VR-clean?* vr) (+ 32764 (* vr 4)))))
       (disassociate-unsafe vr pr)
       pr)))
 
@@ -117,7 +128,8 @@
         *PR-to-VR* (make-array registers :element-type 'fixnum :initial-element -1)
         *PR-next-use* (make-array registers :element-type 'fixnum :initial-element -1)
         *VR-spilled?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
-        *remat?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
+        *VR-clean?* (make-array *VR-name* :element-type 'fixnum :initial-element -1)
+        *VR-definst* (make-array *VR-name* :element-type 'boolean :initial-element nil)
         *register-stack* (number-list 0 (1- registers)))
   (loop for i = (ll::head ir) then (ll::next i)
      for iter from 0
@@ -128,7 +140,8 @@
        (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)))
        (clear-last-use (ir::r2 data))
        (clear-last-use (ir::r1 data))
-       (allocate-unsafe ir i (ir::r3 data) registers -1))
+       (allocate-unsafe ir i (ir::r3 data) registers -1)
+       (set-definst data))
   ir)
 
 (defun allocate-registers (ir registers)

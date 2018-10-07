@@ -47,11 +47,10 @@
   (setf *VR-name* 0
         *last-use* (make-array *max-register* :element-type 'fixnum :initial-element -1)
         *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1))
-  (let ((current (1- (ll::size ll))))
-    (loop for i = (ll::tail ll) then (ll::prev i)
-       for current = (1- (ll::size ll)) then (1- current)
-       while i
-       for data = (ll::data i)
-       do
-         (update-line data current)))
+  (loop for i = (ll::tail ll) then (ll::prev i)
+     for current = (1- (ll::size ll)) then (1- current)
+     while i
+     for data = (ll::data i)
+     do
+       (update-line data current))
   ll)
