@@ -54,6 +54,7 @@
     (if (eq (char opcode 0) #\s)
         (make-IR :opcode opcode
                  :category :memop
+                 :store t
                  :r1 (register->int reg1)
                  :r2 (register->int reg2))
         (make-IR :opcode opcode
@@ -106,20 +107,26 @@
 
 (defun output-instruction (data f)
   (case (category data)
-         (:memop (format t "~a r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r3 data))))
-         (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (funcall f (r3 data))))
-         (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r2 data)) (funcall f (r3 data))))
-         (:output (format t "output ~a~%" (constant data)))
-         (:nop (format t "nop~%"))))
+    (:memop (format t "~a r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (if (store data)
+                                                                                           (r2 data)
+                                                                                           (r3 data)))))
+    (:loadi (format t "~a ~a => r~a~%" (opcode data) (constant data) (funcall f (r3 data))))
+    (:arithop (format t "~a r~a, r~a => r~a~%" (opcode data) (funcall f (r1 data)) (funcall f (r2 data)) (funcall f (r3 data))))
+    (:output (format t "output ~a~%" (constant data)))
+    (:nop (format t "nop~%"))))
 
 (defun output-instruction-with-comments (data node)
   (case (category data)
     (:memop (if (= -1 (virtual (r3 data)))
                 (format t "~a r~a => r~a~%"
                         (opcode data) (physical (r1 data)) (physical (r3 data)))
-                (format t "~a r~a => r~a		// vr~a => vr~a~%"
-                        (opcode data) (physical (r1 data)) (physical (r3 data))
-                        (virtual (r1 data)) (virtual (r3 data)))))
+                (if (store data)
+                    (format t "~a r~a => r~a		// vr~a => vr~a~%"
+                            (opcode data) (physical (r1 data)) (physical (r2 data))
+                            (virtual (r1 data)) (virtual (r2 data)))
+                    (format t "~a r~a => r~a		// vr~a => vr~a~%"
+                            (opcode data) (physical (r1 data)) (physical (r3 data))
+                            (virtual (r1 data)) (virtual (r3 data))))))
     (:loadi (if (= -1 (virtual (r3 data)))
                 (format t  (if (store (ll::data (ll::next node)))
                                "~a ~a => r~a	// Spilling vr~a~%"
