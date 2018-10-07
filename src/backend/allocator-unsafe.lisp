@@ -80,7 +80,6 @@
     reg
     (let* ((pr (choose-spill-register dont-use))
            (vr (aref *PR-to-VR* pr)))
-      (print vr)
       (if (aref *remat?* vr)
           ;; Rematerializeable
           (progn
