@@ -93,7 +93,7 @@
           ;; Rematerializeable
           (progn
             ;; Remove the loadI instruction
-            (ll:del ll (aref *VR-definst* vr))
+            ;; (ll:del ll (aref *VR-definst* vr))
             )
           ;; Regular spill
           (progn
