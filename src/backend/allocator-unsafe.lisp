@@ -95,7 +95,7 @@
                      (setf max-register i))))))
     (cond ((null max-remat) max-register)
           ((null max-register) max-remat)
-          ((< (* max-next-use 2) max-nu-remat) max-register)
+          ((< (* max-next-use 3) max-nu-remat) max-register)
           (t max-remat))))
 
 (defun get-register-or-spill (ll ir rcount dont-use linum)
