@@ -1,4 +1,4 @@
-#!/bin/python
+#!/bin/python3
 import subprocess
 import os
 
@@ -7,5 +7,5 @@ script_path = os.path.join(base_dir,"AllocAndRunAll")
 registers = [3,4,5,6,8,10]
 
 for i in range(len(registers)):
-    result = subprocess.run([script_path, str(registers[i])], stdout=subprocess.PIPE)
-    print(result.stdout)
+    result = subprocess.check_output([script_path, str(registers[i])])
+    print(result)
