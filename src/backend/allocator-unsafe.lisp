@@ -12,18 +12,18 @@
   (setf (aref *VR-to-PR* register) -1)
   (setf (aref *PR-to-VR* pr) -1))
 
-(defun generate-spill (register regs)
+(defun generate-spill (vr pr regs)
   (let ((ll (ll:make-LL)))
     (ll:insert-back ll (ir::make-IR :opcode "loadI"
                                  :category :loadI
-                                 :constant (+ 32764 (* (aref *PR-to-VR* register) 4))
+                                 :constant (+ 32764 (* vr 4))
                                  :r3 (ir::make-Register
                                       :physical (1- regs))))
     (ll:insert-back ll (ir::make-IR :opcode "store"
                                  :category :memop
                                  :r1 (ir::make-Register
-                                      :virtual (aref *PR-to-VR* register)
-                                      :physical register)
+                                      :virtual vr
+                                      :physical pr)
                                  :r3 (ir::make-Register
                                       :physical (1- regs))
                                  :store t))
@@ -61,8 +61,8 @@
 ;;            (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
 
 (defun choose-spill-register (dont-use)
-  (let (max-next-use max-register) 
-    (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
+  (let (max-next-use max-register)
+    (loop for i from 0 to (- (car (array-dimensions *PR-to-VR*)) 2)
        do
          (unless (= dont-use i)
            (if (null max-next-use)
@@ -78,19 +78,20 @@
 (defun get-register-or-spill (ll ir rcount dont-use)
   (if-let (reg (pop *register-stack*))
     reg
-    (let* ((reg (choose-spill-register dont-use))
-           (to-spill (aref *PR-to-VR* reg)))
-      (if (aref *remat?* to-spill)
+    (let* ((pr (choose-spill-register dont-use))
+           (vr (aref *PR-to-VR* pr)))
+      (print vr)
+      (if (aref *remat?* vr)
           ;; Rematerializeable
           (progn
             ;; Remove the loadI instruction
             )
           ;; Regular spill
           (progn
-            (ll:insert-before ll ir (generate-spill to-spill rcount))
-            (setf (aref *VR-spilled?* to-spill) t)))
-      (disassociate-unsafe to-spill reg)
-      reg)))
+            (ll:insert-before ll ir (generate-spill vr pr rcount))
+            (setf (aref *VR-spilled?* vr) t)))
+      (disassociate-unsafe vr pr)
+      pr)))
 
 (defun allocate-unsafe (ll ir register rcount dont-use)
   (let ((v (ir::virtual register)))

@@ -35,7 +35,7 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../../test/lab2_report/report5.i")))
+  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
     (allocator:allocate-registers ir 8)
     (ir::output-ir-comments ir)))
 
