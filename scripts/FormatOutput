@@ -2,11 +2,21 @@
 import subprocess
 import os
 
+def percent_improvement(first,second):
+    return (first - second) / first
+
 base_dir = os.path.dirname(os.path.realpath(__file__))
 script_path = os.path.join(base_dir,"Formatter")
 registers = [3,4,5,6,8,10]
 # Number of report scripts
 cycles = [[],[],[],[],[],[],[]]
+refRes = [[201, 153, 118, 93, 61, 54],
+          [136, 122, 105, 99, 87, 75],
+          [404, 343, 298, 260, 217, 179],
+          [168, 161, 155, 149, 137, 126],
+          [56, 46, 38, 36, 30, 30],
+          [287, 247, 199, 187, 166, 154],
+          [100, 80, 68, 60, 47, 44]]
 
 for i in range(len(registers)):
     result = subprocess.check_output([script_path, str(registers[i])])
@@ -14,4 +24,7 @@ for i in range(len(registers)):
     for j in range(len(split)-1):
         cycles[j].append(int(split[j]))
 
-    print(cycles)
+for i in range(0,7):
+    for j in range(0,6):
+        print(percent_improvement(refRes[i][j], cycles[i][j]))
+    
