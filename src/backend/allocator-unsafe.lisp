@@ -24,7 +24,7 @@
                                  :r1 (ir::make-Register
                                       :virtual vr
                                       :physical pr)
-                                 :r3 (ir::make-Register
+                                 :r2 (ir::make-Register
                                       :physical (1- regs))
                                  :store t))
     ll))
