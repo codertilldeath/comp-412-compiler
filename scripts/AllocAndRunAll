@@ -14,7 +14,7 @@ DIR=$(pwd)
 BASEDIR=$(dirname "$0")
 RUNALL=$BASEDIR/AllocHelper
 CHECK=$BASEDIR/CheckResults
-LOG=~/AllocTest.log
+LOG=$BASEDIR/log/AllocTest.log
 NREGS=${1:-5}
 #
 echo "Allocating and Testing ILOC Files"
