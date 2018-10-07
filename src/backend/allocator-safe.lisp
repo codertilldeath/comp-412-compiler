@@ -2,7 +2,8 @@
   (:use :cl :alexandria)
   (:import-from :renamer
                 :rename-registers
-                :*VR-name*)
+                :*VR-name*
+                :*high-pressure-zones*)
   (:import-from :global
                 :*max-live*
                 :*max-register*)

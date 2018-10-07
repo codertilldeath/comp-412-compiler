@@ -93,10 +93,12 @@
                             max-next-use)
                      (setf max-next-use (aref *PR-next-use* i))
                      (setf max-register i))))))
-    (if (and max-remat
-             (< (- max-nu-remat linum) 4))
-        max-remat
-        (or max-remat max-register))))
+    (cond ((null max-remat) max-register)
+          ((null max-register) max-remat)
+          ((and (aref *high-pressure-zones* max-nu-remat)
+                (not (aref *high-pressure-zones* max-next-use)))
+           max-register)
+          (t max-remat))))
 
 (defun get-register-or-spill (ll ir rcount dont-use linum)
   (if-let (reg (pop *register-stack*))
@@ -142,10 +144,10 @@
                                              :physical (get-pr v)
                                              :virtual (ir::virtual (ir::r3 inst)))))
                     (progn 
-                      (ll:insert-before ll ir
-                                        (generate-restore (ir::virtual register)
-                                                          (1- rcount)
-                                                          (get-pr v)))
+                      (ll:insert-before
+                       ll ir (generate-restore (ir::virtual register)
+                                               (1- rcount)
+                                               (get-pr v)))
                       (setf (aref *VR-spilled?* v) nil))))))
       ;; Update physical-register in IR
       (setf (ir::physical register) (get-pr v))
@@ -176,7 +178,7 @@
   ir)
 
 (defun allocate-registers (ir registers)
-  (rename-registers ir)
+  (rename-registers ir registers)
   (if (<= *max-live* registers)
       (allocate-full ir registers)
       (allocate-spill ir registers)))
