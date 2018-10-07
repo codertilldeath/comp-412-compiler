@@ -34,3 +34,4 @@
   - State "DONE"       from "TODO"       [2018-09-30 Sun 23:48]
 * TODO Keep track of clean values that don't need re-spilling
 * TODO Keep track of rematerializable values 
+* TODO Make store take up r1 and r2 instead of r1 and r3

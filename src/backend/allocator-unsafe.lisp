@@ -11,18 +11,6 @@
   (setf (aref *VR-to-PR* (ir::virtual register)) -1)
   (setf (aref *PR-to-VR* pr) (ir::make-register)))
 
-(defun choose-spill-register ()
-  (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
-     for max = (list i (aref *PR-to-VR* i))
-     then
-       (let ((new (aref *PR-to-VR* i)))
-         (if (> (ir::next-use new)
-                (ir::next-use (cadr max)))
-             (list i new)
-             max))
-     finally
-       (return (car max))))
-
 
 (defun generate-spill (register regs)
   (let ((ll (ll:make-LL)))
@@ -33,10 +21,10 @@
                                       :physical (1- regs))))
     (ll:insert-back ll (ir::make-IR :opcode "store"
                                  :category :memop
-                                 :r1 (ir::make-Register
-                                      :physical (ir::physical register))
+                                 :r1 register
                                  :r3 (ir::make-Register
-                                      :physical (1- regs))))
+                                      :physical (1- regs))
+                                 :store t))
     ll))
 
 
@@ -70,10 +58,25 @@
                         i)))
            (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
 
-(defun get-register-or-spill (ll ir rcount)
+(defun choose-spill-register (dont-use)
+  (loop for i from 0 to (1- (car (array-dimensions *PR-to-VR*)))
+     for max = (if (zerop dont-use)
+                   (list 1 (aref *PR-to-VR* 1))
+                   (list 0 (aref *PR-to-VR* 0)))
+     then
+       (let ((new (aref *PR-to-VR* i)))
+         (if (and (> (ir::next-use new)
+                     (ir::next-use (cadr max)))
+                  (not (= dont-use i)))
+             (list i new)
+             max))
+     finally
+       (return (car max))))
+
+(defun get-register-or-spill (ll ir rcount dont-use)
   (if-let (reg (pop *register-stack*))
     reg
-    (let* ((reg (choose-spill-register))
+    (let* ((reg (choose-spill-register dont-use))
            (to-spill (aref *PR-to-VR* reg)))
       (disassociate-unsafe to-spill reg)
       (if (aref *remat?* (ir::physical to-spill))
@@ -87,13 +90,13 @@
             (setf (aref *VR-spilled?* (ir::virtual to-spill)) t)))
       reg)))
 
-(defun allocate-unsafe (ll ir register rcount)
+(defun allocate-unsafe (ll ir register rcount dont-use)
   (let ((v (ir::virtual register)))
     (unless (= -1 v)
       ;; First time using or defining VR
       (when (= -1 (aref *VR-to-PR* v))
         ;; def
-        (let ((reg (get-register-or-spill ll ir rcount)))
+        (let ((reg (get-register-or-spill ll ir rcount dont-use)))
           (associate-unsafe register reg))
         ;; restore
         (when (aref *VR-spilled?* v)
@@ -119,16 +122,16 @@
        (if (and (eq :memop (ir::category data))
                 (ir::store data))
            (progn
-             (allocate-unsafe ir i (ir::r1 data) registers)
-             (allocate-unsafe ir i (ir::r3 data) registers)
+             (allocate-unsafe ir i (ir::r1 data) registers -1)
+             (allocate-unsafe ir i (ir::r3 data) registers (ir::physical (ir::r1 data)))
              (clear-last-use (ir::r3 data))
              (clear-last-use (ir::r1 data)))
            (progn
-             (allocate-unsafe ir i (ir::r1 data) registers)
-             (allocate-unsafe ir i (ir::r2 data) registers)
+             (allocate-unsafe ir i (ir::r1 data) registers -1)
+             (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)))
              (clear-last-use (ir::r2 data))
              (clear-last-use (ir::r1 data))
-             (allocate-unsafe ir i (ir::r3 data) registers))))
+             (allocate-unsafe ir i (ir::r3 data) registers -1))))
   ir)
 
 (defun allocate-registers (ir registers)

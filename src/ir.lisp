@@ -5,7 +5,7 @@
   (:import-from :global
                :*max-register*)
   (:export
-   :make-internal :pprint-ir :output-ir))
+   :make-internal :pprint-ir :output-ir :output-ir-comments))
 
 (in-package :ir)
 
@@ -108,12 +108,46 @@
          (:output (format t "output ~a~%" (constant data)))
          (:nop (format t "nop~%"))))
 
+(defun output-instruction-with-comments (data node)
+  (case (category data)
+    (:memop (if (= -1 (virtual (r3 data)))
+                (format t "~a r~a => r~a~%"
+                        (opcode data) (physical (r1 data)) (physical (r3 data)))
+                (format t "~a r~a => r~a		// vr~a => vr~a~%"
+                        (opcode data) (physical (r1 data)) (physical (r3 data))
+                        (virtual (r1 data)) (virtual (r3 data)))))
+    (:loadi (if (= -1 (virtual (r3 data)))
+                (format t  (if (store (ll::data (ll::next node)))
+                               "~a ~a => r~a	// Spilling vr~a~%"
+                               "~a ~a => r~a	// Restoring vr~a~%")
+                            (opcode data) (constant data)
+                            (physical (r3 data)) (/ (- (constant data) 32764) 4))
+                (format t
+                        (if (> (constant data) 999)
+                            "~a ~a => r~a	// => vr~a~%"
+                            "~a ~a => r~a		// => vr~a~%")
+                        (opcode data) (constant data)
+                        (physical (r3 data)) (virtual (r3 data)))))
+    (:arithop (format t "~a r~a, r~a => r~a	// vr~a, vr~a => vr~a~%"
+                      (opcode data)
+                      (physical (r1 data)) (physical (r2 data)) (physical (r3 data))
+                      (virtual (r1 data)) (virtual (r2 data)) (virtual (r3 data))))
+    (:output (format t "output ~a~%" (constant data)))
+    (:nop (format t "nop~%"))))
+
 (defun output-ir (ir f)
   (loop for node = (ll::head ir) then (ll::next node)
      while node
      for data = (ll::data node)
      do
        (output-instruction data f)))
+
+(defun output-ir-comments (ir)
+  (loop for node = (ll::head ir) then (ll::next node)
+     while node
+     for data = (ll::data node)
+     do
+       (output-instruction-with-comments data node)))
 
 (defun z (n)
   (if (< n 0)

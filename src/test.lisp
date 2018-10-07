@@ -33,6 +33,12 @@
     (allocator:allocate-registers ir 5)
     (ir::output-ir ir #'ir::physical)))
 
+(progn
+  (global:compile-start)
+  (let* ((ir (parser:parse-file "../../test/lab2_report/report5.i")))
+    (allocator:allocate-registers ir 4)
+    (ir::output-ir-comments ir)))
+
 (require 'sb-sprof)
 
 (let ((ir (parser:parse-file "../../../../students/lab2/timing/T128k.i")))
