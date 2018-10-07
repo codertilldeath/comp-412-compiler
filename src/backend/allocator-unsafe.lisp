@@ -93,10 +93,7 @@
                             max-next-use)
                      (setf max-next-use (aref *PR-next-use* i))
                      (setf max-register i))))))
-    (cond ((null max-remat) max-register)
-          ((null max-register) max-remat)
-          ((< (* max-next-use 3) max-nu-remat) max-register)
-          (t max-remat))))
+    (or max-remat max-register)))
 
 (defun get-register-or-spill (ll ir rcount dont-use linum)
   (if-let (reg (pop *register-stack*))

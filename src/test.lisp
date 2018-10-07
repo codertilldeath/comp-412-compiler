@@ -35,7 +35,7 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_report/report1.i")))
+  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
     (renamer:rename-registers ir)
     (ir::output-ir ir #'ir::virtual)))
 
