@@ -2,4 +2,4 @@
 
 BASEDIR=$(dirname "$0")
 
-$BASEDIR/AllocAndRunAll $1 | grep cycles
+$BASEDIR/AllocAndRunAll $1 | grep cycles | cut -d ' ' -f 4
