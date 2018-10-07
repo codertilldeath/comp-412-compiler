@@ -23,7 +23,8 @@
                (:file "./frontend/parser")
                
                (:file "./backend/renamer")
-               (:file "./backend/allocator")
+               (:file "./backend/allocator-safe")
+               (:file "./backend/allocator-unsafe")
                
                (:file "./cli/cli")
                (:file "main")))
