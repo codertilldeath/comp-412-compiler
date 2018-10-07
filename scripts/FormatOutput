@@ -8,4 +8,5 @@ registers = [3,4,5,6,8,10]
 
 for i in range(len(registers)):
     result = subprocess.check_output([script_path, str(registers[i])])
-    print(result)
+    split = str.split("\n")
+    print(split)
