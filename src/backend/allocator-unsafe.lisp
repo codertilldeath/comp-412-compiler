@@ -30,18 +30,18 @@
     ll))
 
 
-(defun generate-restore (register regs dest)
+(defun generate-restore (vr spill-register dest)
   (let ((ll (ll:make-LL)))
     (ll:insert-back ll (ir::make-IR :opcode "loadI"
                                  :category :loadI
                                  :constant (+ 32764
-                                              (* (ir::virtual register) 4))
+                                              (* vr 4))
                                  :r3 (ir::make-Register
-                                      :physical (1- regs))))
+                                      :physical spill-register)))
     (ll:insert-back ll (ir::make-IR :opcode "load"
                                  :category :memop
                                  :r1 (ir::make-Register
-                                      :physical (1- regs))
+                                      :physical spill-register)
                                  :r3 (ir::make-Register
                                       :physical dest)))
     ll))
@@ -103,7 +103,9 @@
         ;; restore
         (when (aref *VR-spilled?* v)
           (ll:insert-before ll ir
-                            (generate-restore register rcount (get-pr v)))
+                            (generate-restore (ir::virtual register)
+                                              (1- rcount)
+                                              (get-pr v)))
           (setf (aref *VR-spilled?* v) nil)))
       ;; Update physical-register in IR
       (setf (ir::physical register) (get-pr v))
