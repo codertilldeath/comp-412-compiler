@@ -131,22 +131,22 @@
           (associate-unsafe register reg))
         ;; restore
         (when (aref *VR-spilled?* v)
-          (if (eq (ir::opcode (ll::data (aref *VR-definst* v)))
-                  :|loadI|)
               (let ((inst (ll::data (aref *VR-definst* v))))
-                (ll:insert-before-raw ll ir
-                                      (ir::make-IR :opcode :|loadI|
-                                                   :category :loadI
-                                                   :constant (ir::constant inst)
-                                                   :r3 (ir::make-Register
-                                                        :physical (get-pr v)
-                                                        :virtual (ir::virtual (ir::r3 inst))))))
-              (progn 
-                (ll:insert-before ll ir
-                                  (generate-restore (ir::virtual register)
-                                                    (1- rcount)
-                                                    (get-pr v)))
-                (setf (aref *VR-spilled?* v) nil)))))
+                (if (eq (ir::opcode inst)
+                        :|loadI|)
+                    (ll:insert-before-raw
+                     ll ir (ir::make-IR :opcode :|loadI|
+                                        :category :loadI
+                                        :constant (ir::constant inst)
+                                        :r3 (ir::make-Register
+                                             :physical (get-pr v)
+                                             :virtual (ir::virtual (ir::r3 inst)))))
+                    (progn 
+                      (ll:insert-before ll ir
+                                        (generate-restore (ir::virtual register)
+                                                          (1- rcount)
+                                                          (get-pr v)))
+                      (setf (aref *VR-spilled?* v) nil))))))
       ;; Update physical-register in IR
       (setf (ir::physical register) (get-pr v))
       ;; Update next-use, because the "when" above prevents uses from updating
@@ -170,6 +170,8 @@
        (clear-last-use (ir::r2 data))
        (clear-last-use (ir::r1 data))
        (allocate-unsafe ir i (ir::r3 data) registers -1 iter)
+       (when (eq (ir::opcode data) :|nop|)
+         (ll:del ir i))
        (set-definst i))
   ir)
 
