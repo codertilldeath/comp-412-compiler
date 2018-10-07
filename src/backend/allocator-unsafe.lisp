@@ -117,8 +117,14 @@
         (when (aref *VR-spilled?* v)
           (if (eq (ir::opcode (ll::data (aref *VR-definst* v)))
                   :|loadI|)
-              (ll:insert-before-raw ll ir
-                                (ll::data (aref *VR-definst* v)))
+              (let ((inst (ll::data (aref *VR-definst* v))))
+                (ll:insert-before-raw ll ir
+                                      (ir::make-IR :opcode :|loadI|
+                                                   :category :loadI
+                                                   :constant (ir::constant inst)
+                                                   :r3 (ir::make-Register
+                                                        :physical (get-pr v)
+                                                        :virtual (ir::virtual (ir::r3 inst))))))
               (progn 
                 (ll:insert-before ll ir
                                   (generate-restore (ir::virtual register)
