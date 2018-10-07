@@ -7,7 +7,7 @@
 (defparameter *VR-clean?* nil)
 
 (defun set-definst (data)
-  (let* ((v (ir::virtual (ir::r3 data))))
+  (let* ((v (ir::virtual (ir::r3 (ll::data data)))))
     (unless (= v -1)
       (setf (aref *VR-definst* v)
             data))))
@@ -88,18 +88,20 @@
     reg
     (let* ((pr (choose-spill-register dont-use))
            (vr (aref *PR-to-VR* pr)))
-      (if nil
+      (if (eq (ir::opcode (ll::data (aref *VR-definst* vr)))
+              :|loadI|)
           ;; Rematerializeable
           (progn
             ;; Remove the loadI instruction
+            (ll:del ll (aref *VR-definst* vr))
             )
           ;; Regular spill
           (progn
             (when (= (aref *VR-clean?* vr) -1)
               ;; If value has been spilled before, don't spill again
               (ll:insert-before ll ir (generate-spill vr pr rcount)))
-            (setf (aref *VR-spilled?* vr) t)
             (setf (aref *VR-clean?* vr) (+ 32764 (* vr 4)))))
+      (setf (aref *VR-spilled?* vr) t)
       (disassociate-unsafe vr pr)
       pr)))
 
@@ -113,11 +115,16 @@
           (associate-unsafe register reg))
         ;; restore
         (when (aref *VR-spilled?* v)
-          (ll:insert-before ll ir
-                            (generate-restore (ir::virtual register)
-                                              (1- rcount)
-                                              (get-pr v)))
-          (setf (aref *VR-spilled?* v) nil)))
+          (if (eq (ir::opcode (ll::data (aref *VR-definst* v)))
+                  :|loadI|)
+              (ll:insert-before-raw ll ir
+                                (ll::data (aref *VR-definst* v)))
+              (progn 
+                (ll:insert-before ll ir
+                                  (generate-restore (ir::virtual register)
+                                                    (1- rcount)
+                                                    (get-pr v)))
+                (setf (aref *VR-spilled?* v) nil)))))
       ;; Update physical-register in IR
       (setf (ir::physical register) (get-pr v))
       ;; Update next-use, because the "when" above prevents uses from updating
@@ -129,7 +136,7 @@
         *PR-next-use* (make-array registers :element-type 'fixnum :initial-element -1)
         *VR-spilled?* (make-array *VR-name* :element-type 'boolean :initial-element nil)
         *VR-clean?* (make-array *VR-name* :element-type 'fixnum :initial-element -1)
-        *VR-definst* (make-array *VR-name* :element-type 'boolean :initial-element nil)
+        *VR-definst* (make-array *VR-name* :element-type 'll::ll-node :initial-element (ll::make-ll-node))
         *register-stack* (number-list 0 (1- registers)))
   (loop for i = (ll::head ir) then (ll::next i)
      for iter from 0
@@ -141,7 +148,7 @@
        (clear-last-use (ir::r2 data))
        (clear-last-use (ir::r1 data))
        (allocate-unsafe ir i (ir::r3 data) registers -1)
-       (set-definst data))
+       (set-definst i))
   ir)
 
 (defun allocate-registers (ir registers)
