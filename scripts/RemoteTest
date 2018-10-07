@@ -1,10 +1,9 @@
-ssh bc29@ssh.clear.rice.edu << EOF
-    bash << EOC
-         cd comp-412-compiler
-         git pull > /dev/null
-         make clean > /dev/null
-         make > /dev/null 2>&1 
-         cd test/lab2_report/
-         ../../scripts/MyScript
-         exit
+ssh bc29@ssh.clear.rice.edu -t "bash" << EOF
+    cd comp-412-compiler
+    git pull > /dev/null
+    make clean > /dev/null
+    make > /dev/null 2>&1 
+    cd test/lab2_report/
+    ../../scripts/MyScript
+    exit
 EOF

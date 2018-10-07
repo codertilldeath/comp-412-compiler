@@ -31,7 +31,7 @@
   (global:compile-start)
   (let* ((ir (parser:parse-file "../../../../../students/lab2/code_check_1/cc1.i")))
     (allocator:allocate-registers ir 5)
-    (ir::output-ir ir #'ir::physical)))
+    (ir::output-ir-comments ir)))
 
 (progn
   (global:compile-start)
@@ -41,7 +41,7 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
+  (let* ((ir (parser:parse-file "../../test/lab2_report/report5.i")))
     (allocator:allocate-registers ir 5)
     (ir::output-ir-comments ir)))
 
