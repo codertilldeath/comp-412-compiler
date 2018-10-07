@@ -32,11 +32,11 @@ for i in range(0,7):
     for j in range(0,6):
         print("|%d" % refRes[i][j], end='')
     print("|")
-    print("||", end='')
+    print("|", end='')
     for j in range(0,6):
         print("|%d" % cycles[i][j], end='')
     print("|")
-    print("||", end='')
+    print("|", end='')
     for j in range(0,6):
         print("|%.1f" % percent_improvement(refRes[i][j], cycles[i][j]), end='')
     print("|")
