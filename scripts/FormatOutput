@@ -25,6 +25,8 @@ for i in range(len(registers)):
         cycles[j].append(int(split[j]))
 
 for i in range(0,7):
+    sumImp = 0
     for j in range(0,6):
-        print(percent_improvement(refRes[i][j], cycles[i][j]))
+        sumImp += percent_improvement(refRes[i][j], cycles[i][j])
+    print("For report %d, improvement of:\t%.1f" % (i, (sumImp / 7) * 100))
     
