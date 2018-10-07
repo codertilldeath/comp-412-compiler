@@ -75,7 +75,7 @@
     reg
     (let* ((reg (choose-spill-register))
            (to-spill (aref *PR-to-VR* reg)))
-      (disassociate to-spill reg)
+      (disassociate-unsafe to-spill reg)
       (if (aref *remat?* (ir::physical to-spill))
           ;; Rematerializeable
           (progn
@@ -94,7 +94,7 @@
       (when (= -1 (aref *VR-to-PR* v))
         ;; def
         (let ((reg (get-register-or-spill ll ir rcount)))
-          (associate register reg))
+          (associate-unsafe register reg))
         ;; restore
         (when (aref *VR-spilled?* v)
           (ll:insert-before ll ir
