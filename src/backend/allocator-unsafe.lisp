@@ -68,7 +68,7 @@
 ;;                         i)))
 ;;            (format t "We have a problem! Line number ~a! pr~a does not match vr~a!~%" linum i (aref *VR-to-PR* (ir::virtual (aref *PR-to-VR* i)))))))
 
-(defun choose-spill-register (dont-use)
+(defun choose-spill-register (dont-use linum)
   (let (max-next-use max-register
         max-nu-remat max-remat)
     (loop for i from 0 to (- (car (array-dimensions *PR-to-VR*)) 2)
@@ -93,12 +93,15 @@
                             max-next-use)
                      (setf max-next-use (aref *PR-next-use* i))
                      (setf max-register i))))))
-    (or max-remat max-register)))
+    (if (and max-remat
+             (< (- max-nu-remat linum) 4))
+        max-remat
+        (or max-remat max-register))))
 
 (defun get-register-or-spill (ll ir rcount dont-use linum)
   (if-let (reg (pop *register-stack*))
     reg
-    (let* ((pr (choose-spill-register dont-use))
+    (let* ((pr (choose-spill-register dont-use linum))
            (vr (aref *PR-to-VR* pr))
            (inst (ll::data (aref *VR-definst* vr))))
       (if (eq (ir::opcode inst) :|loadI|)
