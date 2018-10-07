@@ -118,8 +118,11 @@
 (defun output-instruction-with-comments (data node)
   (case (category data)
     (:memop (if (= -1 (virtual (r3 data)))
-                (format t "~a r~a => r~a~%"
-                        (opcode data) (physical (r1 data)) (physical (r3 data)))
+                (if (store data)
+                    (format t "~a r~a => r~a~%"
+                            (opcode data) (physical (r1 data)) (physical (r2 data)))
+                    (format t "~a r~a => r~a~%"
+                            (opcode data) (physical (r1 data)) (physical (r3 data))))
                 (if (store data)
                     (format t "~a r~a => r~a		// vr~a => vr~a~%"
                             (opcode data) (physical (r1 data)) (physical (r2 data))
