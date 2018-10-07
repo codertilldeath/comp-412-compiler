@@ -11,8 +11,9 @@
 # where k is the number of registers to be passed to the allocator
 #
 DIR=$(pwd)
-RUNALL=/clear/courses/comp412/students/lab2/scripts/AllocHelper
-CHECK=/clear/courses/comp412/students/lab2/scripts/CheckResults
+BASEDIR=$(dirname "$0")
+RUNALL=$BASEDIR/AllocHelper
+CHECK=$BASEDIR/CheckResults
 LOG=~/AllocTest.log
 NREGS=${1:-5}
 #

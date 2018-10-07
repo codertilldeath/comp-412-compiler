@@ -9,9 +9,10 @@
 #  and the command that actually runs the code are specified
 #  in the defined variables SIM, ALLOC, and RUN
 #
+BASEDIR=$(dirname "$0")
 SIM=/clear/courses/comp412/students/lab2/sim
-ALLOC=/clear/courses/comp412/students/lab2/lab2_ref
-RUN=/clear/courses/comp412/students/lab2/scripts/AllocOne
+ALLOC=$BASEDIR/../build/412fealloc
+RUN=$BASEDIR/AllocOne
 DIR=$(pwd)
 #
 FLIST=$(ls *.i)
