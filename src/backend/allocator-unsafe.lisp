@@ -128,7 +128,7 @@
        (allocate-unsafe ir i (ir::r2 data) registers (ir::physical (ir::r1 data)))
        (clear-last-use (ir::r2 data))
        (clear-last-use (ir::r1 data))
-       (allocate-unsafe ir i (ir::r3 data) registers -1)))
+       (allocate-unsafe ir i (ir::r3 data) registers -1))
   ir)
 
 (defun allocate-registers (ir registers)
