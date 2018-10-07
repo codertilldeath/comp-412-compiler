@@ -1,0 +1,11 @@
+#!/bin/python
+import subprocess
+import os
+
+base_dir = os.path.dirname(os.path.realpath(__file__))
+script_path = os.path.join(base_dir,"AllocAndRunAll")
+registers = [3,4,5,6,8,10]
+
+for i in range(len(registers)):
+    result = subprocess.run([script_path, str(registers[i])], stdout=subprocess.PIPE)
+    print(result.stdout)
