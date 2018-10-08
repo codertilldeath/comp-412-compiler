@@ -70,7 +70,8 @@
 
 (defun choose-spill-register (dont-use linum)
   (let (max-next-use max-register
-        max-nu-remat max-remat)
+        max-nu-remat max-remat
+        max-nu-clean max-clean)
     (loop for i from 0 to (- (car (array-dimensions *PR-to-VR*)) 2)
        do
          (unless (= dont-use i)
@@ -85,14 +86,26 @@
                             max-nu-remat)
                      (setf max-nu-remat (aref *PR-next-use* i))
                      (setf max-remat i)))
-               (if (null max-next-use)
-                   (progn
-                     (setf max-next-use (aref *PR-next-use* i))
-                     (setf max-register i))
-                   (when (> (aref *PR-next-use* i)
-                            max-next-use)
-                     (setf max-next-use (aref *PR-next-use* i))
-                     (setf max-register i))))))
+               (if (= (aref *VR-clean?* (aref *PR-to-VR* i))
+                      -1)
+                   ;; Unclean Values
+                   (if (null max-next-use)
+                       (progn
+                         (setf max-next-use (aref *PR-next-use* i))
+                         (setf max-register i))
+                       (when (> (aref *PR-next-use* i)
+                                max-next-use)
+                         (setf max-next-use (aref *PR-next-use* i))
+                         (setf max-register i)))
+                   ;; Clean values
+                   (if (null max-nu-clean)
+                       (progn
+                         (setf max-nu-clean (aref *PR-next-use* i))
+                         (setf max-clean i))
+                       (when (> (aref *PR-next-use* i)
+                                max-nu-clean)
+                         (setf max-nu-clean (aref *PR-next-use* i))
+                         (setf max-clean i)))))))
     ;; (when max-remat 
     ;;   (format t "Max Remat: (VR, ~a) (PR, ~a) (Next-use, ~a)~%" (aref *PR-to-VR* max-remat) max-remat max-nu-remat))
     ;; (when max-register
