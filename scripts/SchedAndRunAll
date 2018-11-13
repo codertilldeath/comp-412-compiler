@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# This script runs all of the ILOC files in the current directory (./*.i)
+# through an instruction scheduler; runs the resulting code through the ILOC
+# simulator; checks the output values against the specifications provided
+# in the comments of the original ILOC file; and reports both correctness
+# and the number of cycles required to execute the allocated code.
+#
+# usage: SchedAndRunAll
+#
+DIR=$(pwd)
+RUNALL=/clear/courses/comp412/students/lab3/scripts/SchedHelper
+CHECK=/clear/courses/comp412/students/lab3/scripts/CheckResults
+LOG=~/SchedTest.log
+#
+echo "Scheduling and Testing ILOC Files"
+echo "  in $DIR"
+echo " "
+echo " "
+$RUNALL >&$LOG
+$CHECK $LOG

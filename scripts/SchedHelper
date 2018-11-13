@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+#  usage: SchedHelper
+#
+#  Locations for the ILOC Simulator, the Instruction Scheduler
+#  and the command that actually runs the code are specified
+#  in the defined variables SIM, ALLOC, and RUN
+#
+SIM=/clear/courses/comp412/students/lab3/sim
+SCHED=/clear/courses/comp412/students/lab3/lab3_ref
+RUN=/clear/courses/comp412/students/lab3/scripts/SchedOne
+DIR=$(pwd)
+#
+FLIST=$(ls *.i)
+#
+echo "Test run in: $DIR"
+echo "-----"
+#
+for f in $(ls *.i); do
+    $RUN $f $SCHED $SIM
+    echo "-----"
+done
+#
+

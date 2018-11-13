@@ -1,0 +1,32 @@
+COMP 412, Fall 2015
+
+This directory contains a set of tools to assist in Lab 3.
+
+SchedAndRunALL -- takes each ILOC file in a directory, runs it
+       through an instruction scheduler; runs the output of that
+       scheduler through the simulator; and compares the results
+       of the simulated execution against the original file's 
+       OUTPUT spec.
+
+       Syntax:
+		SchedAndRunAll 
+
+       Shell variables defined in "SchedAndRunAll" specify locations
+       for the various tools and some of the paramters that they 
+       use.
+
+       The easiest way to use this script is to copy make a copy of 
+       this directory. Change the definitions of the shell variables
+       as needed (e.g., RUNALL in SchedAndRunALL and SCHED in 
+       SchedHelper.  Copy SchedAndRunAll to your directory and then 
+       execute it as 
+
+       	    	./SchedAndRunAll 
+
+       The scripts will use a temporary file in your home directory,
+       named ~/SchedTest.log
+
+NOTE:  The script "SchedHelper" uses the scheduler specified in its
+       "SCHED" variable. You must change that variable to make it point
+       to your own scheduler. Otherwise, it will invoke the reference
+       implementation.
