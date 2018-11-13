@@ -17,14 +17,14 @@
             (caddr args))))
 
 (defun output-help ()
-  (format t "COMP 412, Fall 2018 Register Allocator (lab 2)
-Command Syntax:
-	412alloc k filename [-h] [-l]
+  (format t "Syntax: 412sched filename [-h] [-g] [-s] [-v]
+	filename is the pathname (absolute or relative) to the input file
+	-h prints this message
 
-Required arguments:
-	k	  specifies the number of register available
-	filename  is the pathname (absolute or relative) to the input file
-
-Optional flags:
-	-h	  prints this message
-"))
+The following flags are additive (multiple flags produce stronger results):
+	-g : creates a '.dot' file for graphviz
+"
+      ;;-s : disables dependence trimming for LOAD, STORE, & OUTPUT
+      ;;-t : turns on internal timing reports
+      ;;-v : verifies dependence graph structure before use.
+          ))
