@@ -8,7 +8,7 @@
 #
 SIM=/clear/courses/comp412/students/lab3/sim
 SCHED=/clear/courses/comp412/students/lab3/lab3_ref
-RUN=/clear/courses/comp412/students/lab3/scripts/SchedOne
+RUN=~/comp-412-compiler/scripts/SchedOne
 DIR=$(pwd)
 #
 FLIST=$(ls *.i)
