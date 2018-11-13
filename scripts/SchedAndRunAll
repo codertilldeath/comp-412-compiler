@@ -9,8 +9,8 @@
 # usage: SchedAndRunAll
 #
 DIR=$(pwd)
-RUNALL=/clear/courses/comp412/students/lab3/scripts/SchedHelper
-CHECK=/clear/courses/comp412/students/lab3/scripts/CheckResults
+RUNALL=~/comp-412-compiler/scripts/SchedHelper
+CHECK=~/comp-412-compiler/scripts/CheckResults
 LOG=~/SchedTest.log
 #
 echo "Scheduling and Testing ILOC Files"
