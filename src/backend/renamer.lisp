@@ -44,10 +44,13 @@
   (when (> *current-live* *max-live*)
     (setq *max-live* *current-live*)))
 
-(defun rename-registers (ll)
+(defun constructor ()
   (setf *VR-name* 0
         *last-use* (make-array *max-register* :element-type 'fixnum :initial-element -1)
-        *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1))
+        *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1)))
+
+(defun rename-registers (ll)
+  (constructor)
   (loop for i = (ll::tail ll) then (ll::prev i)
      for current = (1- (ll::size ll)) then (1- current)
      while i
