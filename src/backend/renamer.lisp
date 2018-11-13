@@ -6,17 +6,13 @@
                 :*current-live*)
   (:export
    :*VR-name*
-   :rename-registers
-   :*high-pressure-zones*))
+   :rename-registers))
 
 (in-package :renamer)
 
 (defparameter *SR-to-VR* nil)
 (defparameter *last-use* nil)
 (defparameter *VR-name* nil)
-(defparameter *high-pressure-stack* nil)
-(defparameter *high-pressure-zones* nil)
-(defparameter *in-high-pressure* nil)
 
 (defun update (register count)
   (let ((s (ir::source register)))
@@ -48,27 +44,14 @@
   (when (> *current-live* *max-live*)
     (setq *max-live* *current-live*)))
 
-(defun rename-registers (ll registers)
+(defun rename-registers (ll)
   (setf *VR-name* 0
         *last-use* (make-array *max-register* :element-type 'fixnum :initial-element -1)
-        *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1)
-        *high-pressure-zones* (make-array (ll::size ll) :element-type 'boolean :initial-element nil)
-        *high-pressure-stack* '()
-        *in-high-pressure* nil)
+        *SR-to-VR* (make-array *max-register* :element-type 'fixnum :initial-element -1))
   (loop for i = (ll::tail ll) then (ll::prev i)
      for current = (1- (ll::size ll)) then (1- current)
      while i
      for data = (ll::data i)
      do
-       (when (and (not *in-high-pressure*)
-                  (< (1- registers) *current-live*))
-         (push current *high-pressure-stack*)
-         (setf *in-high-pressure* t))
-       (when (and *in-high-pressure*
-                  (>= (1- registers) *current-live*))
-         (push (1+ current) *high-pressure-stack*)
-         (setf *in-high-pressure* nil))
-       (when *in-high-pressure*
-         (setf (aref *high-pressure-zones* current) t))
        (update-line data current))
   ll)

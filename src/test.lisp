@@ -35,13 +35,13 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_report/report1.i")))
+  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
     (renamer:rename-registers ir 3)
     (ir::output-ir ir #'ir::virtual)))
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_report/report1.i")))
+  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
     (allocator:allocate-registers ir 3)
     (ir::output-ir-comments ir)))
 
