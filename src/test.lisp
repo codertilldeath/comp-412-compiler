@@ -1,49 +1,8 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../../../../students/lab2/code_check_1/cc1.i")))
-    (allocator:allocate-registers ir 5)
-    (ir::output-ir ir #'ir::physical)))
-
-
-(progn
-  (global:compile-start)
-  (let* ((ir (parser:parse-file "../../test/example2.i")))
-    (renamer:rename-registers ir)
-    (ir::output-ir-table ir )))
-
-
-(progn
-  (global:compile-start)
-  (let* ((ir (parser:parse-file "../../test/example2.i")))
-    (allocator:allocate-registers ir 3)
-    ;;(renamer:rename-registers ir)
-    (ir::output-ir ir #'ir::physical)))
-
-
-(progn
-  (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/my.i")))
-    (allocator:allocate-registers ir 2)
-    (ir::output-ir ir #'ir::physical)))
-
-(progn
-  (global:compile-start)
-  (let* ((ir (parser:parse-file "../../../../../students/lab2/code_check_1/cc1.i")))
-    (allocator:allocate-registers ir 5)
-    (ir::output-ir-comments ir)))
-
-(progn
-  (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
-    (renamer:rename-registers ir 3)
-    (ir::output-ir ir #'ir::virtual)))
-
-(progn
-  (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_report/report5.i")))
-    (allocator:allocate-registers ir 3)
-    (ir::output-ir-comments ir)))
+  (let* ((ir (parser:parse-file "../test/my/lab3/test_parallel_output.i")))
+    (ir::output-parallel-ir ir #'ir::source)))
 
 (require 'sb-sprof)
 

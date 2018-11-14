@@ -12,8 +12,12 @@
     (:nop     (format nil "nop"))))
 
 (defun output-parallel-ir (ir f)
-  (loop for node = (ll::head ir) then (ll::next (ll::next node))
+  (loop for node = (ll::head ir) then (let ((next (ll::next node)))
+                                        (if (null next)
+                                            nil
+                                            (ll::next next)))
      while node
-       for data = (ll::data node)
+     for data = (ll::data node)
+     for data2 = (ll::data (ll::next node))
      do
-       (format t "[~a;~a]" (string-instruction data f) (string-instruction data f))))
+       (format t "[~a;~a]~%" (string-instruction data f) (string-instruction data2 f))))
