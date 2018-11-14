@@ -20,7 +20,7 @@
                (:file "./backend/renamer")
                ;;(:file "./backend/allocator-safe")
                ;;(:file "./backend/allocator-unsafe")
-               (:file "./backend/scheduler.lisp")
+               (:file "./backend/scheduler")
                
                (:file "./cli/cli")
                (:file "main")))

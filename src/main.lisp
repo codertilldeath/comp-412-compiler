@@ -8,10 +8,10 @@
                 :rename-registers)
   (:import-from :global
                 :compile-start)
+  (:import-from :scheduler
+                :schedule)
   (:import-from :ir
-                :output-ir)
-  (:import-from :allocator
-                :allocate-registers)
+                :output-parallel-ir)
   (:export :entry))
 
 (in-package :412fe)
@@ -20,10 +20,13 @@
   (compile-start)
   (destructuring-bind (f . s) (parse-args argl)
     (case f
-      (:|-x| (output-ir (rename-registers (parse-file s))
-                            #'ir::virtual))
-      (t (output-ir (allocate-registers (parse-file s) f)
-                    #'ir::physical)))))
+      ;;(:|-g| (output-ir (rename-registers (parse-file s))
+      ;;                  #'ir::virtual))
+      (:|-h| (output-help))
+      (t (let* ((ir (parse-file s)))
+           (rename-registers ir)
+           (output-parallel-ir (schedule ir)
+                               #'ir::virtual))))))
 
 (defun entry ()
   (main sb-ext:*posix-argv*))

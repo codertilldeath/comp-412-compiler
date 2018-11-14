@@ -3,4 +3,5 @@
 
 (in-package :scheduler)
 
-
+(defun schedule (ir)
+  ir)
