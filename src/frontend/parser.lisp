@@ -57,6 +57,8 @@
            (setf success nil)
          else if (not (empty-line? line))
          do
-           (insert-back ll (make-internal line))
-           (incf count))
+           (let ((ir (make-internal line)))
+             (unless (eq (ir::category ir) :nop)
+               (insert-back ll ir))
+             (incf count)))
       ll)))
