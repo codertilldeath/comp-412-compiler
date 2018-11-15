@@ -7,7 +7,7 @@
 #  in the defined variables SIM, ALLOC, and RUN
 #
 SIM=/clear/courses/comp412/students/lab3/sim
-SCHED=/clear/courses/comp412/students/lab3/lab3_ref
+SCHED=~/comp-412-compiler/build/412fealloc
 RUN=~/comp-412-compiler/scripts/SchedOne
 DIR=$(pwd)
 #
