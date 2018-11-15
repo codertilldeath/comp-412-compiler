@@ -5,7 +5,7 @@
   (:import-from :global
                :*max-register*)
   (:export
-   :make-internal :pprint-ir :output-ir :output-ir-comments))
+   :make-internal :pprint-ir :output-ir :output-ir-comments :output-parallel-ir))
 
 (in-package :ir)
 
@@ -16,7 +16,7 @@
   (next-use -1 :type fixnum))
 
 (defstruct (IR :conc-name)
-  (opcode "" :type symbol)
+  (opcode :none :type symbol)
   (category nil :type symbol)
   (constant -1 :type fixnum)
   (store nil :type boolean)

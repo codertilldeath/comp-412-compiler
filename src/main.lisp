@@ -20,8 +20,10 @@
   (compile-start)
   (destructuring-bind (f . s) (parse-args argl)
     (case f
-      ;;(:|-g| (output-ir (rename-registers (parse-file s))
-      ;;                  #'ir::virtual))
+      (:|-g| (let* ((ir (parser:parse-file s)))
+               (renamer:rename-registers ir)
+               (scheduler::make-graph ir)
+               (scheduler::output-graph s)))
       (:|-h| (output-help))
       (t (let* ((ir (parse-file s)))
            (rename-registers ir)

@@ -21,6 +21,7 @@
                ;;(:file "./backend/allocator-safe")
                ;;(:file "./backend/allocator-unsafe")
                (:file "./backend/scheduler")
+               (:file "./backend/graph")
                
                (:file "./cli/cli")
                (:file "main")))

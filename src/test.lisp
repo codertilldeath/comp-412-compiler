@@ -1,8 +1,13 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/my/lab3/test_parallel_output.i")))
-    (ir::output-parallel-ir ir #'ir::source)))
+  (let* ((ir (parser:parse-file "../test/my/lab3/example2.i")))
+    (renamer:rename-registers ir)
+    (scheduler::make-graph ir)
+    (scheduler::output-graph)
+    ;;(format t "~a" scheduler::*node-table*)
+    ;;(ir::output-parallel-ir (scheduler:schedule ir) #'ir::virtual)
+    ))
 
 (require 'sb-sprof)
 
