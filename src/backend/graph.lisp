@@ -37,7 +37,8 @@
       (setf (edge-next-succ
                  (aref *edge-table* index))
                 succ))
-    (setf (node-succ node) index)))
+    (setf (node-succ node) index)
+    (incf (node-dep-left node))))
 
 (defun add-pred (n index)
   (let* ((node (aref *node-table* n))
