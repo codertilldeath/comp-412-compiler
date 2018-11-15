@@ -25,7 +25,7 @@
                (scheduler::make-graph ir)
                (scheduler::output-graph s)))
       (:|-h| (output-help))
-      (t (let* ((ir (parse-file s)))
+      (t (let* ((ir (parse-file f)))
            (rename-registers ir)
            (output-parallel-ir (schedule ir)
                                #'ir::virtual))))))
