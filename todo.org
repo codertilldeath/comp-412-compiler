@@ -1,37 +1,40 @@
-* DONE Implement help flag
-  CLOSED: [2018-09-29 Sat 13:39]
-  - State "DONE"       from "TODO"       [2018-09-29 Sat 13:39]
-* DONE Cleanify register renaming
-  CLOSED: [2018-09-29 Sat 15:29]
-  - State "DONE"       from "TODO"       [2018-09-29 Sat 15:29]
-* DONE Add printer-option to structs LL and ll-node
-  CLOSED: [2018-09-29 Sat 15:52]
-  - State "DONE"       from "TODO"       [2018-09-29 Sat 15:52]
-* TODO Reorganize errors.lisp and parser.lisp
-* TODO Return Lexeme spelling, grammatic category, AND opcode number
-* TODO Replace opcode in IR with integer representation
-* DONE IR and LL file in top level directory
-  CLOSED: [2018-09-29 Sat 13:40]
-  - State "DONE"       from "TODO"       [2018-09-29 Sat 13:40]
-* DONE Add global variables lisp file
-  CLOSED: [2018-09-29 Sat 16:19]
-  - State "DONE"       from "TODO"       [2018-09-29 Sat 16:19]
-* TODO Export all symbols of IR and LL, maybe
-* TODO Work out dependencies
-* DONE Count the number of registers, max
-  CLOSED: [2018-09-29 Sat 15:31]
-  - State "DONE"       from "TODO"       [2018-09-29 Sat 15:31]
-* DONE Calculate MAXLIVE
-  CLOSED: [2018-09-30 Sun 23:49]
-  - State "DONE"       from "TODO"       [2018-09-30 Sun 23:49]
-* TODO Remove IR's dependency on table:lookup
-* DONE Remove abs from output-ir
-  CLOSED: [2018-09-30 Sun 23:49]
-  - State "DONE"       from "TODO"       [2018-09-30 Sun 23:49]
-* TODO Maybe if next use is on the same line, don't count that one
-* DONE [#A] Start on register spilling. Loop through physical registers
-  CLOSED: [2018-09-30 Sun 23:48]
-  - State "DONE"       from "TODO"       [2018-09-30 Sun 23:48]
-* TODO Keep track of clean values that don't need re-spilling
-* TODO Keep track of rematerializable values 
-* TODO Make store take up r1 and r2 instead of r1 and r3
+* Lab 2                                                             :ARCHIVE:
+** DONE Implement help flag
+   CLOSED: [2018-09-29 Sat 13:39]
+   - State "DONE"       from "TODO"       [2018-09-29 Sat 13:39]
+** DONE Cleanify register renaming
+   CLOSED: [2018-09-29 Sat 15:29]
+   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:29]
+** DONE Add printer-option to structs LL and ll-node
+   CLOSED: [2018-09-29 Sat 15:52]
+   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:52]
+** TODO Reorganize errors.lisp and parser.lisp
+** TODO Return Lexeme spelling, grammatic category, AND opcode number
+** TODO Replace opcode in IR with integer representation
+** DONE IR and LL file in top level directory
+   CLOSED: [2018-09-29 Sat 13:40]
+   - State "DONE"       from "TODO"       [2018-09-29 Sat 13:40]
+** DONE Add global variables lisp file
+   CLOSED: [2018-09-29 Sat 16:19]
+   - State "DONE"       from "TODO"       [2018-09-29 Sat 16:19]
+** TODO Export all symbols of IR and LL, maybe
+** TODO Work out dependencies
+** DONE Count the number of registers, max
+   CLOSED: [2018-09-29 Sat 15:31]
+   - State "DONE"       from "TODO"       [2018-09-29 Sat 15:31]
+** DONE Calculate MAXLIVE
+   CLOSED: [2018-09-30 Sun 23:49]
+   - State "DONE"       from "TODO"       [2018-09-30 Sun 23:49]
+** TODO Remove IR's dependency on table:lookup
+** DONE Remove abs from output-ir
+   CLOSED: [2018-09-30 Sun 23:49]
+   - State "DONE"       from "TODO"       [2018-09-30 Sun 23:49]
+** TODO Maybe if next use is on the same line, don't count that one
+** DONE [#A] Start on register spilling. Loop through physical registers
+   CLOSED: [2018-09-30 Sun 23:48]
+   - State "DONE"       from "TODO"       [2018-09-30 Sun 23:48]
+** TODO Keep track of clean values that don't need re-spilling
+** TODO Keep track of rematerializable values 
+** TODO Make store take up r1 and r2 instead of r1 and r3
+* Lab 3
+** TODO Get working schedule

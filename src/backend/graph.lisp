@@ -11,19 +11,24 @@
 (defparameter *last-store* nil)
 (defparameter *last-output* nil)
 
+;; Used in this and others
+(defparameter *leafs* nil)
+
 (defstruct node
   (inst (ir::make-IR) :type ir::ir)
   (node (ll::make-ll-node) :type ll::ll-node)
   (succ -1 :type fixnum)
-  (pred -1 :type fixnum))
+  (pred -1 :type fixnum)
+  (priority 0 :type fixnum)
+  (visited nil :type boolean)
+  (dep-left 0 :type fixnum)
+  (exec-time 0 :type fixnum))
 
 (defstruct edge
   (source -1 :type fixnum)
   (sink -1 :type fixnum)
   (next-succ -1 :type fixnum)
   (next-pred -1 :type fixnum))
-
-
 
 (defun add-succ (n index)
   (let* ((node (aref *node-table* n))
@@ -71,6 +76,12 @@
     (add-pred sink *edge-count*)
     (incf *edge-count*)))
 
+(defun add-use-edge-check (linum register)
+  (let ((v (ir::virtual register)))
+    (unless (or (= v -1) (edge-exists? linum (aref *VR-definst* v)))
+      (add-edge linum
+                (aref *VR-definst* v)))))
+
 (defun add-use-edge (linum register)
   (let ((v (ir::virtual register)))
     (unless (= v -1)
@@ -86,20 +97,29 @@
           *edge-count* 0
           *last-output* nil
           *last-store* nil
-          *loads* '())))
+          *loads* '()
+          *leafs* '())))
 
 
 (defun handle-instruction (node linum)
   (let ((instruction (ll::data node)))
+    ;; Make a node
     (setf (aref *node-table* linum)
           (make-node :inst instruction
                      :node node))
+
+    ;; Defining instruction for r3
     (let ((def (ir::virtual (ir::r3 instruction))))
       (unless (= def -1)
         (setf (aref *VR-definst* def)
               linum)))
+
+    ;; Slight bug, maybe. If r1 and r2 are the same, then there are 2 edges :/
     (add-use-edge linum (ir::r2 instruction))
-    (add-use-edge linum (ir::r1 instruction))
+    ;; Fixed for now
+    (add-use-edge-check linum (ir::r1 instruction))
+
+    ;; IO Edges
     (let ((cat (ir::category instruction)))
       (cond ((eq cat :output)
              (when *last-store*
@@ -128,13 +148,62 @@
   (loop for node = (ll::head ir) then (ll::next node)
      while node
      for i from 0
-     do (handle-instruction node i)))
+     do (handle-instruction node i))
+  (fill-priorities)
+  (setf *leafs*
+        (loop for i from 0 to (1- (array-dimension *node-table* 0))
+           when (= -1 (node-succ (aref *node-table* i)))
+           collect i)))
+
+(defun get-predecessors (n)
+  (loop for i = (node-pred (aref *node-table* n)) then (edge-next-pred (aref *edge-table* i))
+     while (/= i -1)
+     collect (edge-source (aref *edge-table* i))))
+
+(defun get-successors (n)
+  (loop for i = (node-succ (aref *node-table* n)) then (edge-next-succ (aref *edge-table* i))
+     while (/= i -1)
+     collect (edge-sink (aref *edge-table* i))))
+
+(defun fill-priorities ()
+  (let ((worklist (loop for i from 0 to (1- (array-dimension *node-table* 0))
+                     when (= -1 (node-pred (aref *node-table* i)))
+                     collect i)))
+    (loop for i = (pop worklist)
+       while i
+       do
+         (let ((node (aref *node-table* i)))
+           ;; Don't visit nodes twice
+           (unless (node-visited node)
+             (let* ((prio (node-priority node))
+                    (cat (ir::category (node-inst node)))
+                    (op (ir::opcode (node-inst node)))
+                    (cost (case cat
+                            (:memop 5)
+                            (:arithop (if (eq op :mult) 3 1))
+                            (t 1)))
+                    (new-prio (+ prio cost)))
+
+               ;; Update node with own cost plus previous costs
+               (setf (node-visited node) t
+                     (node-priority node) new-prio
+                     (node-exec-time node) cost)
+
+               ;; Add new cost of this node to all nodes of successors
+               (let ((succs (get-successors i)))
+                 (mapcar (lambda (i) (let* ((node (aref *node-table* i))
+                                            (p (+ (node-priority node) new-prio)))
+                                       (setf (node-priority node) p)))
+                         succs)
+                 ;; Add successors to worklist
+                 (appendf worklist succs))))))))
 
 (defun output-graph-nodes (stream)
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
-     do (format stream "	~a [label=\"~a:  ~a\"];~%" i i
+     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a\"];~%" i i
                 (ir::string-instruction (node-inst (aref *node-table* i))
-                                        #'ir::virtual))))
+                                        #'ir::virtual)
+                (node-priority (aref *node-table* i)))))
 
 (defun output-graph-edges (stream)
   (loop for i from 0 to (1- (fill-pointer *edge-table*))
