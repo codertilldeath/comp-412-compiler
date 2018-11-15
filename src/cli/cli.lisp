@@ -14,7 +14,7 @@
       (cons (intern (cadr args) "KEYWORD")
             (caddr args))
       (cons '()
-            (caddr args))))
+            (cadr args))))
 
 (defun output-help ()
   (format t "Syntax: 412sched filename [-h] [-g] [-s] [-v]
