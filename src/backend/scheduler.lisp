@@ -4,6 +4,8 @@
 
 (in-package :scheduler)
 
+(defparameter *ready* nil)
+
 (defun update-actives (actives)
   (let ((new-ready '()))
     (loop for i in actives
@@ -18,45 +20,30 @@
                   (push i new-ready)))))
     new-ready))
 
-(defun get-memop-inst (ready))
-
-(defun get-mult-inst (ready))
+(defun get-schedules ()
+  (let* ((mul-inst (loop for i from *ready*
+                     for inst = nil then (unless (eq :memop (ir::category (node-inst (aref *node-table* i))))
+                                           i)
+                     while (null inst)
+                     finally (return inst)))
+        (mem-inst (loop for i from *ready*
+                     for inst = nil then (unless (or (eq :mult (ir::category (node-inst (aref *node-table* i))))
+                                                     (= i mul-inst))
+                                           i)
+                     while (null inst)
+                     finally (return inst))))
+    (setf *ready* (remove mul-inst (remove mem-inst *ready*)))
+    (cons mem-inst mul-inst)))
 
 (defun schedule (ir)
   (let ((ll (ll::make-LL)))
-    ;; (loop for node = (ll::tail ir) then (ll::prev node)
-    ;;    while node
-    ;;    for data = (ll::data node)
-    ;;    do
-    ;;      (ll:insert-back ll data))
     (make-graph ir)
-    ;; Ready instructions will be the list of instructions that have no predecessors
-    (let ((ready *leafs*)
-          (active '())
+    (setf *ready* (get-leaves))
+    (let ((active '())
           (left (ll::size ir)))
       (loop while (> left 0)
          do
-           ;; (if (null ready)
-           ;;     (progn 
-           ;;       (ll::insert-back ll (ir::make-IR :opcode :nop
-           ;;                                        :category :nop))
-           ;;       (ll::insert-back ll (ir::make-IR :opcode :nop
-           ;;                                        :category :nop)))
-           ;;     (let* ((index (pop ready))
-           ;;            (inst (node-inst (aref *node-table* index))))
-           ;;       (push index active)
-           ;;       (ll::insert-back ll inst)
-           ;;       (decf left)
-           ;;       (if (null ready)
-           ;;           (ll::insert-back ll (ir::make-IR :opcode :nop
-           ;;                                            :category :nop))
-           ;;           (let* ((index (pop ready))
-           ;;                  (inst (node-inst (aref *node-table* index))))
-           ;;             (push index active)
-           ;;             (ll::insert-back ll inst)
-         ;;             (decf left)))))
-           (let ((mem-inst (pop ready))
-                 (mul-inst (pop ready)))
+           (destructuring-bind (mem-inst . mul-inst) (get-schedules)
              (if (null mem-inst)
                  (ll::insert-back ll
                                   (ir::make-IR :opcode :nop
@@ -74,5 +61,5 @@
                    (ll::insert-back ll inst)
                    (decf left))))
            (when-let (new-ready (update-actives active))
-             (appendf ready new-ready))))
+             (appendf *ready* new-ready))))
     ll))

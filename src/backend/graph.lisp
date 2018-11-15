@@ -11,9 +11,6 @@
 (defparameter *last-store* nil)
 (defparameter *last-output* nil)
 
-;; Used in this and others
-(defparameter *leafs* nil)
-
 (defstruct node
   (inst (ir::make-IR) :type ir::ir)
   (node (ll::make-ll-node) :type ll::ll-node)
@@ -98,8 +95,7 @@
           *edge-count* 0
           *last-output* nil
           *last-store* nil
-          *loads* '()
-          *leafs* '())))
+          *loads* '())))
 
 
 (defun handle-instruction (node linum)
@@ -144,17 +140,18 @@
                        *loads*))
              (setf *last-store* linum))))))
 
+(defun get-leaves ()
+  (loop for i from 0 to (1- (array-dimension *node-table* 0))
+     when (= -1 (node-succ (aref *node-table* i)))
+     collect i))
+
 (defun make-graph (ir)
   (constructor ir)
   (loop for node = (ll::head ir) then (ll::next node)
      while node
      for i from 0
      do (handle-instruction node i))
-  (fill-priorities)
-  (setf *leafs*
-        (loop for i from 0 to (1- (array-dimension *node-table* 0))
-           when (= -1 (node-succ (aref *node-table* i)))
-           collect i)))
+  (fill-priorities))
 
 (defun get-predecessors (n)
   (loop for i = (node-pred (aref *node-table* n)) then (edge-next-pred (aref *edge-table* i))
