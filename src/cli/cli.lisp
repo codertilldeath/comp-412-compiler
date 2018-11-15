@@ -13,7 +13,7 @@
   (if (cli-flag-p (cadr args))
       (cons (intern (cadr args) "KEYWORD")
             (caddr args))
-      (cons (ir::str->int (cadr args))
+      (cons '()
             (caddr args))))
 
 (defun output-help ()
