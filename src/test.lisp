@@ -1,12 +1,21 @@
 
+
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab2_cc1/cc1.i"))
-         (ir2 (scheduler::schedule ir)))
+  (let* ((ir (parser:parse-file "../test/lab3_report/report08.i")))
     (renamer:rename-registers ir)
-    (scheduler::make-graph ir)
+    (ir::output-parallel-ir (scheduler::schedule ir) #'ir::virtual)
+    ;;(format t "~a" scheduler::*node-table*)
+    ;;(scheduler::output-graph)
+    ;;(format t "~a" scheduler::*node-table*)
+    ;;(ir::output-parallel-ir (scheduler:schedule ir) #'ir::virtual)
+    ))
 
-    (ir::output-parallel-ir ir2 #'ir::virtual)
+(progn
+  (global:compile-start)
+  (let* ((ir (parser:parse-file "../../../../students/lab2/timing/T128k.i")))
+    (renamer:rename-registers ir)
+    (ir::output-parallel-ir (scheduler::schedule ir) #'ir::virtual)
     ;;(format t "~a" scheduler::*node-table*)
     ;;(scheduler::output-graph)
     ;;(format t "~a" scheduler::*node-table*)

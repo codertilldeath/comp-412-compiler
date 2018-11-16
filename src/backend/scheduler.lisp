@@ -21,17 +21,17 @@
     new-ready))
 
 (defun get-schedules ()
-  (let* ((mul-inst (loop for i in *ready*
-                      for inst = (unless (eq :memop (ir::category (node-inst (aref *node-table* i))))
-                                   i)
-                      while (null inst)
-                      finally (return inst)))
-        (mem-inst (loop for i in *ready*
-                     for inst = (unless (or (eq :mult (ir::opcode (node-inst (aref *node-table* i))))
-                                            (and mul-inst (= i mul-inst)))
+  (let* ((mem-inst (loop for i in *ready*
+                     for inst = (unless (eq :mult (ir::opcode (node-inst (aref *node-table* i))))
                                   i)
                      while (null inst)
-                     finally (return inst))))
+                     finally (return inst)))
+          (mul-inst (loop for i in *ready*
+                       for inst = (unless (or (eq :memop (ir::category (node-inst (aref *node-table* i))))
+                                              (and mem-inst (= i mem-inst)))
+                                   i)
+                      while (null inst)
+                      finally (return inst))))
     (setf *ready* (remove mul-inst (remove mem-inst *ready*)))
     (cons mem-inst mul-inst)))
 
@@ -61,5 +61,9 @@
                    (ll::insert-back ll inst)
                    (decf left))))
            (when-let (new-ready (update-actives active))
-             (appendf *ready* new-ready))))
+             (appendf *ready* new-ready))
+           (setf active (remove-if (lambda (x)
+                                     (zerop (node-exec-time (aref *node-table* x))))
+                                   active))
+           ))
     ll))
