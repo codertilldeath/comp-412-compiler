@@ -25,9 +25,9 @@
                       for inst = (unless (eq :memop (ir::category (node-inst (aref *node-table* i))))
                                    i)
                       while (null inst)
-                     finally (return inst)))
+                      finally (return inst)))
         (mem-inst (loop for i in *ready*
-                     for inst = (unless (or (eq :arithop (ir::category (node-inst (aref *node-table* i))))
+                     for inst = (unless (or (eq :mult (ir::opcode (node-inst (aref *node-table* i))))
                                             (and mul-inst (= i mul-inst)))
                                   i)
                      while (null inst)
