@@ -11,6 +11,7 @@
                
                (:file "./frontend/table")
                (:file "ir")
+               (:file "ir-parallel")
                (:file "./frontend/table-init")
                (:file "./frontend/table-opt")
                (:file "./frontend/scanner")

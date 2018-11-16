@@ -21,15 +21,15 @@
     new-ready))
 
 (defun get-schedules ()
-  (let* ((mul-inst (loop for i from *ready*
-                     for inst = nil then (unless (eq :memop (ir::category (node-inst (aref *node-table* i))))
-                                           i)
-                     while (null inst)
+  (let* ((mul-inst (loop for i in *ready*
+                      for inst = (unless (eq :memop (ir::category (node-inst (aref *node-table* i))))
+                                   i)
+                      while (null inst)
                      finally (return inst)))
-        (mem-inst (loop for i from *ready*
-                     for inst = nil then (unless (or (eq :mult (ir::category (node-inst (aref *node-table* i))))
-                                                     (= i mul-inst))
-                                           i)
+        (mem-inst (loop for i in *ready*
+                     for inst = (unless (or (eq :mult (ir::category (node-inst (aref *node-table* i))))
+                                            (and mul-inst (= i mul-inst)))
+                                  i)
                      while (null inst)
                      finally (return inst))))
     (setf *ready* (remove mul-inst (remove mem-inst *ready*)))
@@ -44,6 +44,7 @@
       (loop while (> left 0)
          do
            (destructuring-bind (mem-inst . mul-inst) (get-schedules)
+             (format t "~a ~a ~%" mem-inst mul-inst)
              (if (null mem-inst)
                  (ll::insert-back ll
                                   (ir::make-IR :opcode :nop
