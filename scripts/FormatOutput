@@ -22,6 +22,7 @@ for j in range(len(split)-1):
     cycles[1].append(int(split[j]))
 
 print("|Number|Mine|Reference|Percent|")
+print("|-")
 
 for i in range(len(cycles[0])):
     print("|report%d.i|%d|%d|%.1f|" % ((i+1),cycles[0][i], cycles[1][i], ((cycles[0][i] - cycles[1][i]) / cycles[1][i]) * 100))
