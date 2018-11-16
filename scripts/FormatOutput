@@ -7,6 +7,7 @@ def percent_improvement(first,second):
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 script_path = os.path.join(base_dir,"Formatter")
+script2_path = os.path.join(base_dir,"Formatter2")
 # Number of report scripts
 cycles = [[],[]]
 
@@ -15,5 +16,11 @@ split = result.split(b"\n")
 for j in range(len(split)-1):
     cycles[0].append(int(split[j]))
 
+result = subprocess.check_output([script2_path])
+split = result.split(b"\n")
+for j in range(len(split)-1):
+    cycles[1].append(int(split[j]))
+
 print(cycles)
+
 
