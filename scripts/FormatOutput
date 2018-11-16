@@ -21,6 +21,9 @@ split = result.split(b"\n")
 for j in range(len(split)-1):
     cycles[1].append(int(split[j]))
 
-print(cycles)
+print("|Mine|Reference|Percent|")
+
+for i in range(len(cycles[0])):
+    print("|%d|%d|%.1f" % (cycles[0][i], cycles[1][i], 0))
 
 
