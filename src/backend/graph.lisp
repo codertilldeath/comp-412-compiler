@@ -178,7 +178,7 @@
                     (op (ir::opcode (node-inst node)))
                     (cost (case cat
                             (:memop 5)
-                            (:arithop (if (eq op :mult) 3 1))
+                            (:arithop (if (eq op :|mult|) 3 1))
                             (t 1)))
                     (new-prio (+ prio cost)))
 
