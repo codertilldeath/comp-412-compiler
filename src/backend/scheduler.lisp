@@ -22,7 +22,7 @@
 
 (defun get-schedules ()
   (let* ((mem-inst (loop for i in *ready*
-                     for inst = (unless (eq :mult (ir::opcode (node-inst (aref *node-table* i))))
+                     for inst = (unless (eq :|mult| (ir::opcode (node-inst (aref *node-table* i))))
                                   i)
                      while (null inst)
                      finally (return inst)))
