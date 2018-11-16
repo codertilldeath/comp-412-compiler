@@ -44,7 +44,6 @@
       (loop while (> left 0)
          do
            (destructuring-bind (mem-inst . mul-inst) (get-schedules)
-             (format t "~a ~a ~%" mem-inst mul-inst)
              (if (null mem-inst)
                  (ll::insert-back ll
                                   (ir::make-IR :opcode :nop
