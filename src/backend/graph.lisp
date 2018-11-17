@@ -309,8 +309,7 @@
              ;; Add new cost of this node to all nodes of successors
              ;; Add successors to worklist
              ;; Only add the ones who have their predecessors expanded
-         (appendf worklist (dec-preds i new-prio))
-         (format t "~a~%" worklist))))))
+         (appendf worklist (dec-preds i new-prio)))))))
 
 (defun output-graph-nodes (stream)
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
