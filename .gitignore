@@ -2,3 +2,4 @@
 build/
 scripts/log
 old/
+**/*.png
