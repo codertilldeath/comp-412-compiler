@@ -2,8 +2,9 @@
 
 (progn
   (global:compile-start)
-  (let* ((ir (parser:parse-file "../test/lab3_report/report07.i")))
+  (let* ((ir (parser:parse-file "../../test/lab3_report/report07.i")))
     (renamer:rename-registers ir)
+    ;;(ir::output-ir ir #'ir::virtual)
     (scheduler::schedule ir)
     ;; (format t "~a" (ir::string-instruction (scheduler::node-inst (aref scheduler::*node-table* 17))
     ;;                                        #'ir::virtual))
@@ -12,7 +13,7 @@
     ;; (scheduler::schedule ir)
     ;; nil
     ;;(format t "~a" scheduler::*node-table*)
-    (scheduler::output-graph "../test/lab3_report/report07.i")
+    (scheduler::output-graph "../../test/lab3_report/report07.i")
     ;;(scheduler::remove-edge 2 1)
     ;;(scheduler::output-graph nil)
     ;;(format t "~a" scheduler::*node-table*)

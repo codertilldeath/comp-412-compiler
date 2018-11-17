@@ -11,6 +11,7 @@
 (defparameter *loads* nil)
 (defparameter *last-store* nil)
 (defparameter *last-output* nil)
+(defparameter *memory* nil)
 
 (defstruct node
   (inst (ir::make-IR) :type ir::ir)
@@ -115,7 +116,8 @@
           *edge-count* 0
           *last-output* nil
           *last-store* nil
-          *loads* '())))
+          *loads* '()
+          *memory* (make-array 32768 :element-type 'fixnum :initial-element -1))))
 
 (defun shl (x width bits)
   (logand (ash x bits)
@@ -156,30 +158,46 @@
 
     ;; Defining instruction for r3
     (let ((def (ir::virtual (ir::r3 instruction))))
+      (when (eq :memop (ir::category instruction))
+        (let* ((r1 (ir::virtual (ir::r1 instruction)))
+               (r1v (aref *VR-value* r1))
+               (r2 (ir::virtual (ir::r2 instruction)))
+               (r2v (or (= -1 r2) (aref *VR-value* r2)))
+               (r3 (ir::virtual (ir::r3 instruction))))
+          (cond ((and (ir::store instruction)
+                      (/= r2v -1))
+                 ;; For stores, set the memory to the value
+                 (setf (aref *memory* r2v)
+                       r1v))
+                ((/= r1v -1)
+                 (setf (aref *VR-value* r3)
+                       (aref *memory* r1v)))
+                )))
       (unless (= def -1)
         (setf (aref *VR-definst* def)
               linum)
-        (if (eq (ir::category instruction) :loadi)
-            (setf (aref *VR-value* def)
-                  (ir::constant instruction))
-            (let ((r1 (ir::virtual (ir::r1 instruction)))
-                  (r2 (ir::virtual (ir::r2 instruction))))
-              (when (and (eq (ir::category instruction) :arithop)
-                         (/= -1 (aref *VR-value* r1))
-                         (/= -1 (aref *VR-value* r2)))
-                (setf (aref *VR-value* def)
-                      (case (ir::opcode instruction)
-                        (:|add| (+ (aref *VR-value* r1)
+        (case (ir::category instruction)
+          (:loadi (setf (aref *VR-value* def)
+                        (ir::constant instruction)))
+          (:arithop
+           (let ((r1 (ir::virtual (ir::r1 instruction)))
+                 (r2 (ir::virtual (ir::r2 instruction))))
+             (when (and (eq (ir::category instruction) :arithop)
+                        (/= -1 (aref *VR-value* r1))
+                        (/= -1 (aref *VR-value* r2)))
+               (setf (aref *VR-value* def)
+                     (case (ir::opcode instruction)
+                       (:|add| (+ (aref *VR-value* r1)
+                                  (aref *VR-value* r2)))
+                       (:|mult| (* (aref *VR-value* r1)
                                    (aref *VR-value* r2)))
-                        (:|mult| (* (aref *VR-value* r1)
-                                    (aref *VR-value* r2)))
-                        (:|sub| (- (aref *VR-value* r1)
-                                   (aref *VR-value* r2)))
-                        (:|lshift| (ash (aref *VR-value* r1)
-                                        (aref *VR-value* r2)))
-                        (:|rshift| (ash (aref *VR-value* r1)
-                                        (- (aref *VR-value* r2))))
-                        (t -1))))))))
+                       (:|sub| (- (aref *VR-value* r1)
+                                  (aref *VR-value* r2)))
+                       (:|lshift| (ash (aref *VR-value* r1)
+                                       (aref *VR-value* r2)))
+                       (:|rshift| (ash (aref *VR-value* r1)
+                                       (- (aref *VR-value* r2))))
+                       (t -1)))))))))
 
     ;; Slight bug, maybe. If r1 and r2 are the same, then there are 2 edges :/
     (add-use-edge linum (ir::r2 instruction))
@@ -209,9 +227,9 @@
                      ;; Just grab the last store
                      ;; This however causes a bug to where some stores don't have dependencies
                      ;; To fix this, if a load is from an unknown address, link to all previous stores
-                     ;;(add-edge-check linum (car *last-store*))
-                     (mapcar (lambda (x) (add-edge-check linum x))
-                             *last-store*)
+                     (add-edge-check linum (car *last-store*))
+                     ;; (mapcar (lambda (x) (add-edge-check linum x))
+                     ;;         *last-store*)
                      ;; Find the store that uses the value of vr1
                      (when-let ((v (get-best-store value)))
                        (add-edge-check linum v)))
