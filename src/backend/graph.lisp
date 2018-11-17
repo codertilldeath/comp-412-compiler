@@ -201,13 +201,17 @@
             ((and (eq cat :memop)
                   (not (ir::store instruction)))
              ;; For loads
-             ;; Should only need an edge to the latest store that stores to the value of vr 
+             ;; Should only need an edge to the latest store that stores to the value of vr
              (when *last-store*
                (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
                  ;; If we don't know the value of vr1 of the load 
                  (if (= value -1)
                      ;; Just grab the last store
-                     (add-edge-check linum (car *last-store*))
+                     ;; This however causes a bug to where some stores don't have dependencies
+                     ;; To fix this, if a load is from an unknown address, link to all previous stores
+                     ;;(add-edge-check linum (car *last-store*))
+                     (mapcar (lambda (x) (add-edge-check linum x))
+                             *last-store*)
                      ;; Find the store that uses the value of vr1
                      (when-let ((v (get-best-store value)))
                        (add-edge-check linum v)))
