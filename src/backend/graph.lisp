@@ -188,8 +188,8 @@
              ;; For outputs
              ;; Rely on the last store, but only if it stores to the address
              (when *last-store*
-               (add-edge-check linum
-                               (get-best-store (ir::constant instruction))))
+               (when-let ((v (get-best-store (ir::constant instruction))))
+                 (add-edge-check linum v)))
              ;; Required edge for serialized output
              (when *last-output*
                (add-edge-check linum (car *last-output*)))
@@ -199,15 +199,15 @@
              ;; For loads
              ;; Should only need an edge to the latest store that stores to the value of vr 
              (when *last-store*
-               (add-edge-check linum
-                               (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
-                                 ;; If we don't know the value of vr1 of the load 
-                                 (if (= value -1)
-                                     ;; Just grab the last store
-                                     (car *last-store*)
-                                     ;; Find the store that uses tthe value of vr1
-                                     (get-best-store value))
-                               )))
+               (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
+                 ;; If we don't know the value of vr1 of the load 
+                 (if (= value -1)
+                     ;; Just grab the last store
+                     (add-edge-check linum (car *last-store*))
+                     ;; Find the store that uses the value of vr1
+                     (when-let ((v (get-best-store value)))
+                       (add-edge-check linum v)))
+                 ))
              (push linum *loads*))
             ((eq cat :memop)
              (when *last-output*
