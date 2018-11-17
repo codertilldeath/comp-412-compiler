@@ -4,7 +4,7 @@
   (global:compile-start)
   (let* ((ir (parser:parse-file "../test/lab3_report/report20.i")))
     (renamer:rename-registers ir)
-    (scheduler::make-graph ir)
+    (scheduler::schedule ir)
     ;; (format t "~a" (ir::string-instruction (scheduler::node-inst (aref scheduler::*node-table* 17))
     ;;                                        #'ir::virtual))
     ;; (print (scheduler::node-dep-left (aref scheduler::*node-table* 17)))
