@@ -12,6 +12,7 @@
 (defparameter *last-store* nil)
 (defparameter *last-output* nil)
 (defparameter *memory* nil)
+(defparameter *memory-activity* nil)
 
 (defstruct node
   (inst (ir::make-IR) :type ir::ir)
@@ -30,6 +31,7 @@
   (sink -1 :type fixnum)
   (next-succ -1 :type fixnum)
   (next-pred -1 :type fixnum)
+  (weight 0 :type fixnum)
   (active t :type boolean))
 
 (defun add-succ (n index)
@@ -94,6 +96,16 @@
     (add-pred sink *edge-count*)
     (incf *edge-count*)))
 
+(defun add-edge-check-small-store (source sink)
+  (unless (edge-exists? source sink)
+    (vector-push-extend (make-edge :source source
+                                   :sink sink
+                                   :weight 4)
+                        *edge-table*)
+    (add-succ source *edge-count*)
+    (add-pred sink *edge-count*)
+    (incf *edge-count*)))
+
 (defun add-use-edge-check (linum register)
   (let ((v (ir::virtual register)))
     (unless (or (= v -1) (edge-exists? linum (aref *VR-definst* v)))
@@ -117,7 +129,8 @@
           *last-output* nil
           *last-store* nil
           *loads* '()
-          *memory* (make-array 32768 :element-type 'fixnum :initial-element -1))))
+          *memory* (make-array 32768 :element-type 'fixnum :initial-element -1)
+          *memory-activity* (make-array 32768 :element-type 'fixnum :initial-element -1))))
 
 (defun shl (x width bits)
   (logand (ash x bits)
@@ -216,6 +229,7 @@
              (when *last-store*
                (when-let ((v (get-best-store (ir::constant instruction))))
                  (add-edge-check linum v)))
+             (setf (aref *memory-activity* (ir::constant instruction)) linum)
              ;; Required edge for serialized output
              (when *last-output*
                (add-edge-check linum (car *last-output*)))
@@ -231,12 +245,17 @@
                      ;; Just grab the last store
                      ;; This however causes a bug to where some stores don't have dependencies
                      ;; To fix this, if a load is from an unknown address, link to all previous stores
-                     (add-edge-check linum (car *last-store*))
+                     (progn
+                       (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
+                          do (setf (aref *memory-activity* i) -1))
+                       (add-edge-check linum (car *last-store*)))
                      ;; (mapcar (lambda (x) (add-edge-check linum x))
                      ;;         *last-store*)
                      ;; Find the store that uses the value of vr1
-                     (when-let ((v (get-best-store value)))
-                       (add-edge-check linum v)))
+                     (progn
+                       (setf (aref *memory-activity* value) linum)
+                       (when-let ((v (get-best-store value)))
+                         (add-edge-check linum v))))
                  ))
              (push linum *loads*))
             ((eq cat :memop)
@@ -248,10 +267,18 @@
                  ;; If we don't know the value of vr2 of the store
                  (if (= value -1)
                      ;; Just grab the last store
-                     (add-edge-check linum (car *last-store*))
+                     (progn
+                       (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
+                          do (setf (aref *memory-activity* i) -1))
+                       (add-edge-check linum (car *last-store*)))
                      ;; Find the store that uses the value of vr2
                      (when-let ((v (get-best-store value)))
-                       (add-edge-check linum v)))
+                       ;; Also, if there has been no activity (load/output) with the given address
+                       (if (and (/= (aref *memory-activity* value) -1)
+                                (<= (aref *memory-activity* value) v))
+                           (add-edge-check-small-store linum v)
+                           (add-edge-check linum v))
+                       (setf (aref *memory-activity* value) linum)))
                  )
                ;; (add-edge-check linum (car *last-store*))
              )
@@ -287,6 +314,15 @@
 
 (defun get-predecessors (n)
   (get-pred-or-succ n #'node-pred #'edge-next-pred #'edge-source))
+
+(defun get-pred-or-succ-struct (n node-fun edge-fun)
+  (loop for i = (funcall node-fun (aref *node-table* n)) then (funcall edge-fun (aref *edge-table* i))
+     while (/= i -1)
+     when (edge-active (aref *edge-table* i))
+     collect (aref *edge-table* i)))
+
+(defun get-predecessor-edges (n)
+  (get-pred-or-succ-struct n #'node-pred #'edge-next-pred))
 
 (defun get-successors (n)
   (get-pred-or-succ n #'node-succ #'edge-next-succ #'edge-sink))
@@ -330,7 +366,7 @@
                           (t 1)))
                   (new-prio (+ prio cost)))
              
-  ;; Update node with own cost plus previous costs
+             ;; Update node with own cost plus previous costs
              (setf (node-visited node) t
                    (node-priority node) new-prio
                    (node-exec-time node) cost)
@@ -351,9 +387,12 @@
   (loop for i from 0 to (1- (fill-pointer *edge-table*))
      do (when-let (edge (aref *edge-table* i))
           (when (edge-active edge)
-              (format stream "	~a -> ~a;~%"
+              (format stream "	~a -> ~a [ label=\" ~a\"];~%"
                       (edge-source edge)
-                      (edge-sink edge))))))
+                      (edge-sink edge)
+                      (if (= 0 (edge-weight edge))
+                          ""
+                          (edge-weight edge)))))))
 
 (defun output-graph (filename)
   (if (null filename)
