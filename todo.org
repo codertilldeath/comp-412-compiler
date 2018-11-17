@@ -40,7 +40,9 @@
 ** DONE Get working schedule
    CLOSED: [2018-11-16 Fri 19:31]
    - State "DONE"       from "TODO"       [2018-11-16 Fri 19:31]
-** TODO Fix report 5
+** DONE Fix report 5
+   CLOSED: [2018-11-16 Fri 19:57]
+   - State "DONE"       from "TODO"       [2018-11-16 Fri 19:57]
    Should be like
    #+BEGIN_SRC 
    [loadI 2000 => r20; loadI 4 => r9]
@@ -69,3 +71,4 @@
    [output 168; nop]
    [output 272; nop]
    #+END_SRC
+** TODO Fix report 20

@@ -1,0 +1,12 @@
+export REPORT_NUMBER=$1
+ssh bc29@ssh.clear.rice.edu bash << EOF
+    cd comp-412-compiler
+    git pull > /dev/null
+    make clean > /dev/null
+    make > /dev/null 2>&1 
+    cd test/lab3_report/
+    ~comp412/students/lab3/lab3_ref -g "report$REPORT_NUMBER.i"
+    exit
+EOF
+
+scp bc29@ssh.clear.rice.edu:~/comp-412-compiler/test/lab3_report/report05.after.dot ./
