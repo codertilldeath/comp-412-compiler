@@ -88,19 +88,13 @@
     exists))
 
 (defun add-edge-check (source sink)
-  (unless (edge-exists? source sink)
-    (vector-push-extend (make-edge :source source
-                                   :sink sink)
-                        *edge-table*)
-    (add-succ source *edge-count*)
-    (add-pred sink *edge-count*)
-    (incf *edge-count*)))
+  (add-edge-check-with-weight source sink 0))
 
-(defun add-edge-check-small-store (source sink)
+(defun add-edge-check-with-weight (source sink weight)
   (unless (edge-exists? source sink)
     (vector-push-extend (make-edge :source source
                                    :sink sink
-                                   :weight 4)
+                                   :weight weight)
                         *edge-table*)
     (add-succ source *edge-count*)
     (add-pred sink *edge-count*)
@@ -276,7 +270,7 @@
                        ;; Also, if there has been no activity (load/output) with the given address
                        (if (and (/= (aref *memory-activity* value) -1)
                                 (<= (aref *memory-activity* value) v))
-                           (add-edge-check-small-store linum v)
+                           (add-edge-check-with-weight linum v 4)
                            (add-edge-check linum v))
                        (setf (aref *memory-activity* value) linum)))
                  )
@@ -387,7 +381,7 @@
   (loop for i from 0 to (1- (fill-pointer *edge-table*))
      do (when-let (edge (aref *edge-table* i))
           (when (edge-active edge)
-              (format stream "	~a -> ~a [ label=\" ~a\"];~%"
+              (format stream "	~a -> ~a [ label=\"~a\"];~%"
                       (edge-source edge)
                       (edge-sink edge)
                       (if (= 0 (edge-weight edge))
