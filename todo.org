@@ -37,4 +37,35 @@
 ** TODO Keep track of rematerializable values 
 ** TODO Make store take up r1 and r2 instead of r1 and r3
 * Lab 3
-** TODO Get working schedule
+** DONE Get working schedule
+   CLOSED: [2018-11-16 Fri 19:31]
+   - State "DONE"       from "TODO"       [2018-11-16 Fri 19:31]
+** TODO Fix report 5
+   Should be like
+   #+BEGIN_SRC 
+   [loadI 2000 => r20; loadI 4 => r9]
+   [load r20 => r1; loadI 4 => r10]
+   [add r10, r9 => r19; loadI 4 => r8]
+   [loadI 4 => r7; add r10, r9 => r2]
+   [add r7, r8 => r18; add r9, r7 => r0]
+   [add r19, r18 => r17; loadI 16 => r5]
+   [store r1 => r19; add r18, r17 => r16]
+   [store r1 => r18; add r17, r16 => r15]
+   [store r1 => r2; loadI 24 => r4]
+   [store r1 => r17; loadI 40 => r3]
+   [store r1 => r16; add r16, r15 => r14]
+   [store r1 => r15; add r15, r14 => r13]
+   [store r1 => r0; add r14, r13 => r12]
+   [store r1 => r5; add r13, r12 => r11]
+   [store r1 => r4; add r7, r8 => r6]
+   [store r1 => r3; nop]
+   [store r1 => r14; nop]
+   [store r1 => r13; output 8]
+   [store r1 => r12; output 16]
+   [store r1 => r11; output 24]
+   [output 40; nop]
+   [output 64; nop]
+   [output 104; nop]
+   [output 168; nop]
+   [output 272; nop]
+   #+END_SRC

@@ -210,10 +210,21 @@
                  ))
              (push linum *loads*))
             ((eq cat :memop)
+             ;; For stores
              (when *last-output*
                (add-edge-check linum (car *last-output*)))
              (when *last-store*
-               (add-edge-check linum (car *last-store*)))
+               (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+                 ;; If we don't know the value of vr2 of the store
+                 (if (= value -1)
+                     ;; Just grab the last store
+                     (add-edge-check linum (car *last-store*))
+                     ;; Find the store that uses the value of vr2
+                     (when-let ((v (get-best-store value)))
+                       (add-edge-check linum v)))
+                 )
+               ;; (add-edge-check linum (car *last-store*))
+             )
              (when *loads*
                (mapcar (lambda (x)
                          (add-edge-check linum x))
