@@ -4,6 +4,7 @@
 (defparameter *node-table* nil)
 (defparameter *edge-table* nil)
 (defparameter *VR-definst* nil)
+(defparameter *VR-value* nil)
 (defparameter *edge-count* nil)
 
 ;; Utilities
@@ -25,7 +26,8 @@
   (source -1 :type fixnum)
   (sink -1 :type fixnum)
   (next-succ -1 :type fixnum)
-  (next-pred -1 :type fixnum))
+  (next-pred -1 :type fixnum)
+  (active t :type boolean))
 
 (defun add-succ (n index)
   (let* ((node (aref *node-table* n))
@@ -53,6 +55,19 @@
   (add-succ source *edge-count*)
   (add-pred sink *edge-count*)
   (incf *edge-count*))
+
+(defun get-edge-index (source sink)
+  (loop for succ in (get-successors source)
+     for index = (when (= sink (edge-sink (aref *edge-table* succ)))
+                   succ)
+     while (null index)
+     finally (return index)))
+
+(defun remove-edge (source sink)
+  (let* ((index (get-edge-index source sink))
+         (edge (aref *edge-table* index)))
+    (format t "~a~%" edge)
+    (setf (edge-active edge) nil)))
 
 (defun edge-exists? (source sink)
   (let ((exists nil))
@@ -92,11 +107,41 @@
                                    :adjustable nil :displaced-to nil :fill-pointer nil)
           *edge-table* (make-array (* size 4) :fill-pointer 0)
           *VR-definst* (make-array renamer:*VR-name* :element-type 'fixnum :initial-element -1)
+          *VR-value* (make-array renamer:*VR-name* :element-type 'fixnum :initial-element -1)
           *edge-count* 0
           *last-output* nil
           *last-store* nil
           *loads* '())))
 
+(defun shl (x width bits)
+  (logand (ash x bits)
+          (1- (ash 1 width))))
+
+(defun shr (x width bits)
+  (logand (ash x (- bits))
+          (1- (ash 1 width))))
+
+(defun get-edge-with-value (n list)
+  (loop for i in list
+     for num = (when (= n (aref *VR-value* (ir::virtual (ir::r2 (node-inst (aref *node-table* i))))))
+                 i)
+     while (null num)
+     do (format t "~a~%" (ir::r2 (node-inst (aref *node-table* i))))
+     finally (return num)))
+
+(defun unknown-value-or-equal (value inst)
+  (let* ((node (aref *node-table* inst))
+         (instruction (node-inst node))
+         (val (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+    (or (= val -1)
+        (= val value))))
+
+(defun get-best-store (val)
+  (loop for i in *last-store*
+     for best = (when (unknown-value-or-equal val i)
+                  i)
+     while (null best)
+     finally (return best)))
 
 (defun handle-instruction (node linum)
   (let ((instruction (ll::data node)))
@@ -109,7 +154,28 @@
     (let ((def (ir::virtual (ir::r3 instruction))))
       (unless (= def -1)
         (setf (aref *VR-definst* def)
-              linum)))
+              linum)
+        (if (eq (ir::category instruction) :loadi)
+            (setf (aref *VR-value* def)
+                  (ir::constant instruction))
+            (let ((r1 (ir::virtual (ir::r1 instruction)))
+                  (r2 (ir::virtual (ir::r2 instruction))))
+              (when (and (eq (ir::category instruction) :arithop)
+                         (/= -1 (aref *VR-value* r1))
+                         (/= -1 (aref *VR-value* r2)))
+                (setf (aref *VR-value* def)
+                      (case (ir::opcode instruction)
+                        (:|add| (+ (aref *VR-value* r1)
+                                   (aref *VR-value* r2)))
+                        (:|mult| (* (aref *VR-value* r1)
+                                    (aref *VR-value* r2)))
+                        (:|sub| (- (aref *VR-value* r1)
+                                   (aref *VR-value* r2)))
+                        (:|lshift| (ash (aref *VR-value* r1)
+                                        (aref *VR-value* r2)))
+                        (:|rshift| (ash (aref *VR-value* r1)
+                                        (- (aref *VR-value* r2))))
+                        (t -1))))))))
 
     ;; Slight bug, maybe. If r1 and r2 are the same, then there are 2 edges :/
     (add-use-edge linum (ir::r2 instruction))
@@ -119,26 +185,40 @@
     ;; IO Edges
     (let ((cat (ir::category instruction)))
       (cond ((eq cat :output)
+             ;; For outputs
+             ;; Rely on the last store, but only if it stores to the address
              (when *last-store*
-               (add-edge-check linum *last-store*))
+               (when-let ((v (get-best-store (ir::constant instruction))))
+                 (add-edge-check linum v)))
+             ;; Required edge for serialized output
              (when *last-output*
-               (add-edge-check linum *last-output*))
-             (setf *last-output* linum))
+               (add-edge-check linum (car *last-output*)))
+             (push linum *last-output*))
             ((and (eq cat :memop)
                   (not (ir::store instruction)))
+             ;; For loads
+             ;; Should only need an edge to the latest store that stores to the value of vr 
              (when *last-store*
-               (add-edge-check linum *last-store*))
+               (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
+                 ;; If we don't know the value of vr1 of the load 
+                 (if (= value -1)
+                     ;; Just grab the last store
+                     (add-edge-check linum (car *last-store*))
+                     ;; Find the store that uses the value of vr1
+                     (when-let ((v (get-best-store value)))
+                       (add-edge-check linum v)))
+                 ))
              (push linum *loads*))
             ((eq cat :memop)
              (when *last-output*
-               (add-edge-check linum *last-output*))
+               (add-edge-check linum (car *last-output*)))
              (when *last-store*
-               (add-edge-check linum *last-store*))
+               (add-edge-check linum (car *last-store*)))
              (when *loads*
                (mapcar (lambda (x)
                          (add-edge-check linum x))
                        *loads*))
-             (setf *last-store* linum))))))
+             (push linum *last-store*))))))
 
 (defun get-leaves ()
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
@@ -153,15 +233,17 @@
      do (handle-instruction node i))
   (fill-priorities))
 
-(defun get-predecessors (n)
-  (loop for i = (node-pred (aref *node-table* n)) then (edge-next-pred (aref *edge-table* i))
+(defun get-pred-or-succ (n node-fun edge-fun edge-getter)
+  (loop for i = (funcall node-fun (aref *node-table* n)) then (funcall edge-fun (aref *edge-table* i))
      while (/= i -1)
-     collect (edge-source (aref *edge-table* i))))
+     when (edge-active (aref *edge-table* i))
+     collect (funcall edge-getter (aref *edge-table* i))))
+
+(defun get-predecessors (n)
+  (get-pred-or-succ n #'node-pred #'edge-next-pred #'edge-source))
 
 (defun get-successors (n)
-  (loop for i = (node-succ (aref *node-table* n)) then (edge-next-succ (aref *edge-table* i))
-     while (/= i -1)
-     collect (edge-sink (aref *edge-table* i))))
+  (get-pred-or-succ n #'node-succ #'edge-next-succ #'edge-sink))
 
 (defun fill-priorities ()
   (let ((worklist (loop for i from 0 to (1- (array-dimension *node-table* 0))
@@ -198,21 +280,28 @@
 
 (defun output-graph-nodes (stream)
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
-     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a\"];~%" i i
+     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a\"];~%" i (1+ i)
                 (ir::string-instruction (node-inst (aref *node-table* i))
                                         #'ir::virtual)
                 (node-priority (aref *node-table* i)))))
 
 (defun output-graph-edges (stream)
   (loop for i from 0 to (1- (fill-pointer *edge-table*))
-     do (let ((edge (aref *edge-table* i)))
-          (format stream "	~a -> ~a;~%"
-                  (edge-source edge)
-                  (edge-sink edge)))))
+     do (when-let (edge (aref *edge-table* i))
+          (when (edge-active edge)
+              (format stream "	~a -> ~a;~%"
+                      (edge-source edge)
+                      (edge-sink edge))))))
 
 (defun output-graph (filename)
-  (with-open-file (stream (concatenate 'string filename ".before.dot") :direction :output)
-    (format stream "digraph DG {~%")
-    (output-graph-nodes stream)
-    (output-graph-edges stream)
-    (format stream "}~%")))
+  (if (null filename)
+      (let ((stream t))
+        (format stream "digraph DG {~%")
+        (output-graph-nodes stream)
+        (output-graph-edges stream)
+        (format stream "}~%"))
+      (with-open-file (stream (concatenate 'string filename ".before.dot") :direction :output :if-exists :supersede)
+        (format stream "digraph DG {~%")
+        (output-graph-nodes stream)
+        (output-graph-edges stream)
+        (format stream "}~%"))))
