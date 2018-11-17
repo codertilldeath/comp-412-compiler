@@ -20,6 +20,8 @@
   (priority 0 :type fixnum)
   (visited nil :type boolean)
   (dep-left 0 :type fixnum)
+  (pred-left 0 :type fixnum)
+  (pred-total 0 :type fixnum)
   (exec-time 0 :type fixnum))
 
 (defstruct edge
@@ -46,7 +48,9 @@
       (setf (edge-next-pred
                  (aref *edge-table* index))
                 pred))
-    (setf (node-pred node) index)))
+    (setf (node-pred node) index)
+    (incf (node-pred-left node))
+    (incf (node-pred-total node))))
 
 (defun add-edge (source sink)
   (vector-push-extend (make-edge :source source
@@ -242,7 +246,12 @@
      while node
      for i from 0
      do (handle-instruction node i))
-  (fill-priorities))
+  (fill-priorities)
+  ;; (loop for i from 0 to (1- (array-dimension *node-table* 0))
+  ;;    for node = (aref *node-table* i)
+  ;;    do
+  ;;      (setf (node-dep-left node) (node-dep-total node)))
+       )
 
 (defun get-pred-or-succ (n node-fun edge-fun edge-getter)
   (loop for i = (funcall node-fun (aref *node-table* n)) then (funcall edge-fun (aref *edge-table* i))
@@ -256,6 +265,24 @@
 (defun get-successors (n)
   (get-pred-or-succ n #'node-succ #'edge-next-succ #'edge-sink))
 
+(defun recursively-add-cost (i diff)
+  (let ((succs (get-successors i)))
+    (mapcar (lambda (i) (let* ((node (aref *node-table* i))
+                               (p (+ (node-priority node) diff)))
+                          (setf (node-priority node) p)
+                          (recursively-add-cost i diff)))
+            succs)))
+
+(defun dec-preds (n cost)
+  (let ((new-ready '()))
+    (loop for i in (get-successors n)
+       for node = (aref *node-table* i)
+       do (decf (node-pred-left node))
+         (setf (node-priority node) (+ (node-priority node) cost))
+         (when (zerop (node-pred-left node))
+           (push i new-ready)))
+    new-ready))
+
 (defun fill-priorities ()
   (let ((worklist (loop for i from 0 to (1- (array-dimension *node-table* 0))
                      when (= -1 (node-pred (aref *node-table* i)))
@@ -265,29 +292,25 @@
        do
          (let ((node (aref *node-table* i)))
            ;; Don't visit nodes twice
-           (unless (node-visited node)
-             (let* ((prio (node-priority node))
-                    (cat (ir::category (node-inst node)))
-                    (op (ir::opcode (node-inst node)))
-                    (cost (case cat
-                            (:memop 5)
-                            (:arithop (if (eq op :|mult|) 3 1))
-                            (t 1)))
-                    (new-prio (+ prio cost)))
-
-               ;; Update node with own cost plus previous costs
-               (setf (node-visited node) t
-                     (node-priority node) new-prio
-                     (node-exec-time node) cost)
-
-               ;; Add new cost of this node to all nodes of successors
-               (let ((succs (get-successors i)))
-                 (mapcar (lambda (i) (let* ((node (aref *node-table* i))
-                                            (p (+ (node-priority node) new-prio)))
-                                       (setf (node-priority node) p)))
-                         succs)
-                 ;; Add successors to worklist
-                 (appendf worklist succs))))))))
+           (let* ((prio (node-priority node))
+                  (cat (ir::category (node-inst node)))
+                  (op (ir::opcode (node-inst node)))
+                  (cost (case cat
+                          (:memop 5)
+                          (:arithop (if (eq op :|mult|) 3 1))
+                          (t 1)))
+                  (new-prio (* (+ prio cost) (funcall (lambda (x) (* x x)) (node-pred-total node)))))
+             
+  ;; Update node with own cost plus previous costs
+             (setf (node-visited node) t
+                   (node-priority node) new-prio
+                   (node-exec-time node) cost)
+             
+             ;; Add new cost of this node to all nodes of successors
+             ;; Add successors to worklist
+             ;; Only add the ones who have their predecessors expanded
+         (appendf worklist (dec-preds i new-prio))
+         (format t "~a~%" worklist))))))
 
 (defun output-graph-nodes (stream)
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
