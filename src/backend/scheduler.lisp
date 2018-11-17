@@ -20,17 +20,22 @@
                   (push i new-ready)))))
     new-ready))
 
+(defun get-cost (i)
+  (node-priority (aref *node-table* i)))
+
 (defun get-schedules ()
   (let* ((mem-inst (loop for i in *ready*
                      for inst = (unless (eq :|mult| (ir::opcode (node-inst (aref *node-table* i))))
-                                  i)
-                     while (null inst)
+                                  (when (or (null inst)
+                                            (< (get-cost inst) (get-cost i)))
+                                    i))
                      finally (return inst)))
           (mul-inst (loop for i in *ready*
                        for inst = (unless (or (eq :memop (ir::category (node-inst (aref *node-table* i))))
                                               (and mem-inst (= i mem-inst)))
-                                   i)
-                      while (null inst)
+                                    (when (or (null inst)
+                                            (< (get-cost inst) (get-cost i)))
+                                    i))
                       finally (return inst))))
     (setf *ready* (remove mul-inst (remove mem-inst *ready*)))
     (cons mem-inst mul-inst)))
