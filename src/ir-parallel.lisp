@@ -11,6 +11,9 @@
     (:output  (format nil "output ~a" (constant data)))
     (:nop     (format nil "nop"))))
 
+(defun string-2-instructions (data1 data2 f)
+  (format t "[~a;~a]~%" (string-instruction data1 f) (string-instruction data2 f)))
+
 (defun output-parallel-ir (ir f)
   (loop for node = (ll::head ir) then (let ((next (ll::next node)))
                                         (if (null next)
@@ -20,4 +23,4 @@
      for data = (ll::data node)
      for data2 = (ll::data (ll::next node))
      do
-       (format t "[~a;~a]~%" (string-instruction data f) (string-instruction data2 f))))
+       (string-2-instructions data data2 #'virtual)))

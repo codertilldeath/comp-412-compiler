@@ -9,4 +9,5 @@ ssh bc29@ssh.clear.rice.edu bash << EOF
     exit
 EOF
 
-scp bc29@ssh.clear.rice.edu:~/comp-412-compiler/test/lab3_report/report05.after.dot ./
+scp bc29@ssh.clear.rice.edu:~/comp-412-compiler/test/lab3_report/report$REPORT_NUMBER.after.dot ./
+scp bc29@ssh.clear.rice.edu:~/comp-412-compiler/test/lab3_report/report$REPORT_NUMBER.before.dot ./
