@@ -21,12 +21,13 @@ split = result.split(b"\n")
 for j in range(len(split)-1):
     cycles[1].append(int(split[j]))
 
-print("|Number|Mine|Reference|Percent|")
+print("|Number|Mine|Reference|Percent|Previous|Improve|")
 print("|-")
 
 for i in range(len(cycles[0])):
     print("|report%d.i|%d|%d|%.1f|" % ((i+1),cycles[0][i], cycles[1][i], ((cycles[0][i] - cycles[1][i]) / cycles[1][i]) * 100))
 
 print("|-")
-print("#+TBLFM: @25$4=vmean(@2$4..@24$4)")
+print("|")
+print("#+TBLFM: $4='(format "%.1f" (* 100 (/ (- $2 $3) (float $3))));N::@25$4..@25$6=vmean(@2..@24)::@2$6..@24$6='(format "%.1f" (- $5 $4));N")
 
