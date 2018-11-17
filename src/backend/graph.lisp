@@ -304,7 +304,10 @@
     (loop for i in (get-successors n)
        for node = (aref *node-table* i)
        do (decf (node-pred-left node))
-         (setf (node-priority node) (+ (node-priority node) cost))
+         ;; Maybe if we only take the max
+       ;; (setf (node-priority node) (+ (node-priority node) cost))
+         (when (< (node-priority node) cost)
+           (setf (node-priority node) cost))
          (when (zerop (node-pred-left node))
            (push i new-ready)))
     new-ready))
