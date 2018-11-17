@@ -49,7 +49,7 @@
           (left (ll::size ir)))
       (loop while (> left 0)
          do
-           (format t "~a~%" *ready*)
+           ;; (format t "~a~%" *ready*)
            (destructuring-bind (mem-inst . mul-inst) (get-schedules)
              (if (null mem-inst)
                  (ll::insert-back ll
@@ -67,9 +67,9 @@
                    (push mul-inst active)
                    (ll::insert-back ll inst)
                    (decf left))))
-           (let* ((tail (ll::tail ll))
-                  (prev (ll::prev tail)))
-             (ir::string-2-instructions (ll::data prev) (ll::data tail) #'ir::virtual))
+           ;; (let* ((tail (ll::tail ll))
+           ;;        (prev (ll::prev tail)))
+           ;;   (ir::string-2-instructions (ll::data prev) (ll::data tail) #'ir::virtual))
            (when-let (new-ready (update-actives active))
              (appendf *ready* new-ready))
            (setf active (remove-if (lambda (x)
