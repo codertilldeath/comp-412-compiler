@@ -129,6 +129,20 @@
      do (format t "~a~%" (ir::r2 (node-inst (aref *node-table* i))))
      finally (return num)))
 
+(defun unknown-value-or-equal (value inst)
+  (let* ((node (aref *node-table* inst))
+         (instruction (node-inst node))
+         (val (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+    (or (= val -1)
+        (= val value))))
+
+(defun get-best-store (val)
+  (loop for i in *last-store*
+     for best = (when (unknown-value-or-equal val i)
+                  i)
+     while (null best)
+     finally (return best)))
+
 (defun handle-instruction (node linum)
   (let ((instruction (ll::data node)))
     ;; Make a node
@@ -171,19 +185,29 @@
     ;; IO Edges
     (let ((cat (ir::category instruction)))
       (cond ((eq cat :output)
+             ;; For outputs
              ;; Rely on the last store, but only if it stores to the address
              (when *last-store*
                (add-edge-check linum
-                               (or (get-edge-with-value (ir::constant instruction) *last-store*)
-                                   (car *last-store*))))
+                               (get-best-store (ir::constant instruction))))
              ;; Required edge for serialized output
              (when *last-output*
                (add-edge-check linum (car *last-output*)))
              (push linum *last-output*))
             ((and (eq cat :memop)
                   (not (ir::store instruction)))
+             ;; For loads
+             ;; Should only need an edge to the latest store that stores to the value of vr 
              (when *last-store*
-               (add-edge-check linum (car *last-store*)))
+               (add-edge-check linum
+                               (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
+                                 ;; If we don't know the value of vr1 of the load 
+                                 (if (= value -1)
+                                     ;; Just grab the last store
+                                     (car *last-store*)
+                                     ;; Find the store that uses tthe value of vr1
+                                     (get-best-store value))
+                               )))
              (push linum *loads*))
             ((eq cat :memop)
              (when *last-output*
