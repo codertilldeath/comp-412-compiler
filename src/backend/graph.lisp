@@ -149,6 +149,8 @@
      while (null best)
      finally (return best)))
 
+(defparameter *debug-inst* nil)
+
 (defun handle-instruction (node linum)
   (let ((instruction (ll::data node)))
     ;; Make a node
@@ -159,19 +161,21 @@
     ;; Defining instruction for r3
     (let ((def (ir::virtual (ir::r3 instruction))))
       (when (eq :memop (ir::category instruction))
+        (setf *debug-inst* (list node linum instruction))
         (let* ((r1 (ir::virtual (ir::r1 instruction)))
                (r1v (aref *VR-value* r1))
                (r2 (ir::virtual (ir::r2 instruction)))
                (r2v (or (= -1 r2) (aref *VR-value* r2)))
                (r3 (ir::virtual (ir::r3 instruction))))
-          (cond ((and (ir::store instruction)
-                      (/= r2v -1))
+          (cond ((ir::store instruction)
                  ;; For stores, set the memory to the value
-                 (setf (aref *memory* r2v)
-                       r1v))
-                ((/= r1v -1)
-                 (setf (aref *VR-value* r3)
-                       (aref *memory* r1v)))
+                 (unless (= r2v -1)
+                   (setf (aref *memory* r2v)
+                         r1v)))
+                ((not (ir::store instruction))
+                 (unless (= r1v -1)
+                   (setf (aref *VR-value* r3)
+                         (aref *memory* r1v))))
                 )))
       (unless (= def -1)
         (setf (aref *VR-definst* def)
