@@ -118,7 +118,7 @@
                                    :adjustable nil :displaced-to nil :fill-pointer nil)
           *edge-table* (make-array (* size 4) :fill-pointer 0)
           *VR-definst* (make-array renamer:*VR-name* :element-type 'fixnum :initial-element -1)
-          *VR-value* (make-array renamer:*VR-name* :element-type 'fixnum :initial-element -1)
+          *VR-value* (make-array renamer:*VR-name* :element-type 'integer :initial-element -1)
           *edge-count* 0
           *last-output* nil
           *last-store* nil
