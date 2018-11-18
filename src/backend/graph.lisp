@@ -32,7 +32,8 @@
   (next-succ -1 :type fixnum)
   (next-pred -1 :type fixnum)
   (weight 0 :type fixnum)
-  (active t :type boolean))
+  (active t :type boolean)
+  (vr -1 :type fixnum))
 
 (defun add-succ (n index)
   (let* ((node (aref *node-table* n))
@@ -58,6 +59,15 @@
 (defun add-edge (source sink)
   (vector-push-extend (make-edge :source source
                                  :sink sink)
+                      *edge-table*)
+  (add-succ source *edge-count*)
+  (add-pred sink *edge-count*)
+  (incf *edge-count*))
+
+(defun add-edge-vr (source sink vr)
+  (vector-push-extend (make-edge :source source
+                                 :sink sink
+                                 :vr vr)
                       *edge-table*)
   (add-succ source *edge-count*)
   (add-pred sink *edge-count*)
@@ -103,14 +113,16 @@
 (defun add-use-edge-check (linum register)
   (let ((v (ir::virtual register)))
     (unless (or (= v -1) (edge-exists? linum (aref *VR-definst* v)))
-      (add-edge linum
-                (aref *VR-definst* v)))))
+      (add-edge-vr linum
+                   (aref *VR-definst* v)
+                   v))))
 
 (defun add-use-edge (linum register)
   (let ((v (ir::virtual register)))
     (unless (= v -1)
-      (add-edge linum
-                (aref *VR-definst* v)))))
+      (add-edge-vr linum
+                   (aref *VR-definst* v)
+                   v))))
 
 (defun constructor (ir)
   (let ((size (ll::size ir)))
@@ -277,9 +289,22 @@
                ;; (add-edge-check linum (car *last-store*))
              )
              (when *loads*
-               (mapcar (lambda (x)
-                         (add-edge-check linum x))
-                       *loads*))
+               (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+                 (if (= value -1)
+                     (mapcar (lambda (x)
+                               (add-edge-check linum x))
+                             *loads*)
+                     (progn
+                       (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
+                       (mapcar (lambda (x)
+                               (let* ((node (aref *node-table* x))
+                                      (inst (node-inst node))
+                                      (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
+                                 (format t "~a - ~a~%" v value)
+                                 (when (or (= v -1)
+                                           (= v value))
+                                   (add-edge-check linum x))))
+                             *loads*)))))
              (push linum *last-store*))))))
 
 (defun get-leaves ()
@@ -381,12 +406,14 @@
   (loop for i from 0 to (1- (fill-pointer *edge-table*))
      do (when-let (edge (aref *edge-table* i))
           (when (edge-active edge)
-              (format stream "	~a -> ~a [ label=\"~a\"];~%"
+              (format stream "	~a -> ~a [ label=\"~a, ~a\"];~%"
                       (edge-source edge)
                       (edge-sink edge)
-                      (if (= 0 (edge-weight edge))
-                          ""
-                          (edge-weight edge)))))))
+                      (let ((v (edge-vr edge)))
+                        (if (= v -1)
+                            "IO Edge"
+                            (format nil "vr~a" v)))
+                      (edge-weight edge))))))
 
 (defun output-graph (filename)
   (if (null filename)
