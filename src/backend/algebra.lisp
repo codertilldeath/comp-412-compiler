@@ -22,7 +22,7 @@
         collect (cons key (gethash key hash))))
 
 (defun add-hash (expr1 expr2)
-  (let ((map (make-var-expr)))
+  (let ((map (make-hash-table)))
     (maphash (lambda (key value)
                (add-element map key value))
              expr1)
@@ -32,7 +32,7 @@
     map))
 
 (defun mult-hash (expr1 val)
-  (let ((map (make-var-expr)))
+  (let ((map (make-hash-table)))
     (maphash (lambda (key value)
                (loop for i from 1 to val
                   do (add-element map key value)))
@@ -40,7 +40,7 @@
     map))
 
 (defun sub-hash (expr1 expr2)
-  (let ((map (make-var-expr)))
+  (let ((map (make-hash-table)))
     (maphash (lambda (key value)
                (add-element map key value))
              expr1)
