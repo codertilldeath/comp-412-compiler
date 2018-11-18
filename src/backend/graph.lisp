@@ -130,21 +130,13 @@
                                    :adjustable nil :displaced-to nil :fill-pointer nil)
           *edge-table* (make-array (* size 4) :fill-pointer 0)
           *VR-definst* (make-array renamer:*VR-name* :element-type 'fixnum :initial-element -1)
-          *VR-value* (make-array renamer:*VR-name* :element-type 'integer :initial-element -1)
+          *VR-value* (make-array renamer:*VR-name* :element-type 'algebraic-expr :initial-element (make-unknown))
           *edge-count* 0
           *last-output* nil
           *last-store* nil
           *loads* '()
           *memory* (make-array 32768 :element-type 'integer :initial-element -1)
           *memory-activity* (make-array 32768 :element-type 'fixnum :initial-element -1))))
-
-(defun shl (x width bits)
-  (logand (ash x bits)
-          (1- (ash 1 width))))
-
-(defun shr (x width bits)
-  (logand (ash x (- bits))
-          (1- (ash 1 width))))
 
 (defun get-edge-with-value (n list)
   (loop for i in list
@@ -154,17 +146,15 @@
      do (format t "~a~%" (ir::r2 (node-inst (aref *node-table* i))))
      finally (return num)))
 
-(defun unknown-value-or-equal (value inst)
-  (let* ((node (aref *node-table* inst))
-         (instruction (node-inst node))
-         (val (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
-    (or (= val -1)
-        (= val value))))
-
 (defun get-best-store (val)
   (loop for i in *last-store*
-     for best = (when (unknown-value-or-equal val i)
-                  i)
+     for best = (let* ((node (aref *node-table* i))
+                       (instruction (node-inst node))
+                       (virt (ir::virtual (ir::r2 instruction)))
+                       (oval (aref *VR-value* virt)))
+                  (when (or (unknown oval)
+                            (alg-eq? val oval))
+                    i))
      while (null best)
      finally (return best)))
 
@@ -188,39 +178,36 @@
                (r3 (ir::virtual (ir::r3 instruction))))
           (cond ((ir::store instruction)
                  ;; For stores, set the memory to the value
-                 (unless (= r2v -1)
-                   (setf (aref *memory* r2v)
+                 (when (is-const r2v)
+                   (setf (aref *memory* (const r2v))
                          r1v)))
                 ((not (ir::store instruction))
-                 (unless (= r1v -1)
+                 (when (is-const r1v)
                    (setf (aref *VR-value* r3)
-                         (aref *memory* r1v))))
+                         (aref *memory* (const r1v)))))
                 )))
       (unless (= def -1)
         (setf (aref *VR-definst* def)
               linum)
         (case (ir::category instruction)
           (:loadi (setf (aref *VR-value* def)
-                        (ir::constant instruction)))
+                        (make-value (ir::constant instruction))))
           (:arithop
            (let ((r1 (ir::virtual (ir::r1 instruction)))
                  (r2 (ir::virtual (ir::r2 instruction))))
-             (when (and (eq (ir::category instruction) :arithop)
-                        (/= -1 (aref *VR-value* r1))
-                        (/= -1 (aref *VR-value* r2)))
+             (when (eq (ir::category instruction) :arithop)
                (setf (aref *VR-value* def)
                      (case (ir::opcode instruction)
-                       (:|add| (+ (aref *VR-value* r1)
-                                  (aref *VR-value* r2)))
-                       (:|mult| (* (aref *VR-value* r1)
-                                   (aref *VR-value* r2)))
-                       (:|sub| (- (aref *VR-value* r1)
-                                  (aref *VR-value* r2)))
-                       (:|lshift| (ash (aref *VR-value* r1)
-                                       (aref *VR-value* r2)))
-                       (:|rshift| (ash (aref *VR-value* r1)
-                                       (- (aref *VR-value* r2))))
-                       (t -1)))))))))
+                       (:|add| (add (aref *VR-value* r1)
+                                    (aref *VR-value* r2)))
+                       (:|mult| (mult (aref *VR-value* r1)
+                                      (aref *VR-value* r2)))
+                       (:|sub| (sub (aref *VR-value* r1)
+                                    (aref *VR-value* r2)))
+                       ;; Fix unknowns later
+                       (:|lshift| (make-unknown))
+                       (:|rshift| (make-unknown))
+                       (t (make-unknown))))))))))
 
     ;; Slight bug, maybe. If r1 and r2 are the same, then there are 2 edges :/
     (add-use-edge linum (ir::r2 instruction))
@@ -233,7 +220,7 @@
              ;; For outputs
              ;; Rely on the last store, but only if it stores to the address
              (when *last-store*
-               (when-let ((v (get-best-store (ir::constant instruction))))
+               (when-let ((v (get-best-store (make-value (ir::constant instruction)))))
                  (add-edge-check linum v)))
              (setf (aref *memory-activity* (ir::constant instruction)) linum)
              ;; Required edge for serialized output
@@ -247,7 +234,7 @@
              (when *last-store*
                (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
                  ;; If we don't know the value of vr1 of the load 
-                 (if (= value -1)
+                 (if (unknown value)
                      ;; Just grab the last store
                      ;; This however causes a bug to where some stores don't have dependencies
                      ;; To fix this, if a load is from an unknown address, link to all previous stores
@@ -259,10 +246,14 @@
                      ;;         *last-store*)
                      ;; Find the store that uses the value of vr1
                      (progn
-                       (setf (aref *memory-activity* value) linum)
+                       (when (is-const value)
+                         (setf (aref *memory-activity* (const value)) linum))
                        (when-let ((v (get-best-store value)))
                          (add-edge-check linum v))))
                  ))
+             (let ((v (ir::virtual (ir::r3 instruction))))
+               (setf (aref *VR-value* v)
+                     (make-variable v)))
              (push linum *loads*))
             ((eq cat :memop)
              ;; For stores
@@ -271,7 +262,7 @@
              (when *last-store*
                (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
                  ;; If we don't know the value of vr2 of the store
-                 (if (= value -1)
+                 (if (unknown value)
                      ;; Just grab the last store
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
@@ -280,17 +271,19 @@
                      ;; Find the store that uses the value of vr2
                      (when-let ((v (get-best-store value)))
                        ;; Also, if there has been no activity (load/output) with the given address
-                       (if (and (/= (aref *memory-activity* value) -1)
-                                (<= (aref *memory-activity* value) v))
+                       (if (and (is-const value)
+                                (/= (aref *memory-activity* (const value)) -1)
+                                (<= (aref *memory-activity* (const value)) v))
                            (add-edge-check-with-weight linum v 4)
                            (add-edge-check linum v))
-                       (setf (aref *memory-activity* value) linum)))
+                       (when (is-const value)
+                         (setf (aref *memory-activity* (const value)) linum))))
                  )
                ;; (add-edge-check linum (car *last-store*))
              )
              (when *loads*
                (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
-                 (if (= value -1)
+                 (if (unknown value)
                      (mapcar (lambda (x)
                                (add-edge-check linum x))
                              *loads*)
@@ -301,8 +294,8 @@
                                       (inst (node-inst node))
                                       (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
                                  (format t "~a - ~a~%" v value)
-                                 (when (or (= v -1)
-                                           (= v value))
+                                 (when (or (unknown v)
+                                           (alg-eq? v value))
                                    (add-edge-check linum x))))
                              *loads*)))))
              (push linum *last-store*))))))

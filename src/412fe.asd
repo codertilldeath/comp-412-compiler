@@ -23,6 +23,7 @@
                ;;(:file "./backend/allocator-unsafe")
                (:file "./backend/scheduler")
                (:file "./backend/graph")
+               (:file "./backend/algebra")
                
                (:file "./cli/cli")
                (:file "main")))
