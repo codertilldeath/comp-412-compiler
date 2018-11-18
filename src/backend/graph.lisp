@@ -123,7 +123,7 @@
           *last-output* nil
           *last-store* nil
           *loads* '()
-          *memory* (make-array 32768 :element-type 'fixnum :initial-element -1)
+          *memory* (make-array 32768 :element-type 'integer :initial-element -1)
           *memory-activity* (make-array 32768 :element-type 'fixnum :initial-element -1))))
 
 (defun shl (x width bits)
