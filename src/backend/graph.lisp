@@ -234,7 +234,7 @@
              (when *last-store*
                (let ((value (aref *VR-value* (ir::virtual (ir::r1 instruction)))))
                  ;; If we don't know the value of vr1 of the load 
-                 (if (unknown value)
+                 (if (not (is-const value))
                      ;; Just grab the last store
                      ;; This however causes a bug to where some stores don't have dependencies
                      ;; To fix this, if a load is from an unknown address, link to all previous stores
@@ -262,7 +262,7 @@
              (when *last-store*
                (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
                  ;; If we don't know the value of vr2 of the store
-                 (if (unknown value)
+                 (if (not (is-const value))
                      ;; Just grab the last store
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
@@ -283,7 +283,7 @@
              )
              (when *loads*
                (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
-                 (if (unknown value)
+                 (if (not (is-const value))
                      (mapcar (lambda (x)
                                (add-edge-check linum x))
                              *loads*)
@@ -294,7 +294,7 @@
                                       (inst (node-inst node))
                                       (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
                                  ;;(format t "~a - ~a~%" v value)
-                                 (when (or (unknown v)
+                                 (when (or (not (is-const v))
                                            (alg-eq? v value))
                                    (add-edge-check linum x))))
                              *loads*)))))
