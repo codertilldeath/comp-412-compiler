@@ -136,7 +136,7 @@
           *last-store* nil
           *loads* '()
           *memory* (make-hash-table)
-          *memory-activity* (make-array 32768 :element-type 'fixnum :initial-element -1))))
+          *memory-activity* (make-array 32768 :element-type 'fixnum :initial-element 0))))
 
 (defun get-edge-with-value (n list)
   (loop for i in list
@@ -308,12 +308,14 @@
                        (when-let ((v (get-best-store value)))
                          (add-edge-check linum v)))
                      ;; Find the store that uses the value of vr2
-                     (when-let ((v (get-best-store value)))
-                       ;; Also, if there has been no activity (load/output) with the given address
-                       (if (and (/= (aref *memory-activity* (const value)) -1)
-                                (<= (aref *memory-activity* (const value)) v))
-                           (add-edge-check-with-weight linum v 4)
-                           (add-edge-check linum v))
+                     (progn
+                       (when-let ((v (get-best-store value)))
+                         ;; Also, if there has been no activity (load/output) with the given address
+                         (if (and (/= (aref *memory-activity* (const value)) -1)
+                                  (<= (aref *memory-activity* (const value)) v))
+                             (add-edge-check-with-weight linum v 4)
+                             (add-edge-check linum v)))
+                       ;; Regardless of whether a previous store was found, mark dirty in memory
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))))
                  )
