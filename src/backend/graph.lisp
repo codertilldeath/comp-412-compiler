@@ -130,7 +130,7 @@
                                    :adjustable nil :displaced-to nil :fill-pointer nil)
           *edge-table* (make-array (* size 4) :fill-pointer 0)
           *VR-definst* (make-array renamer:*VR-name* :element-type 'fixnum :initial-element -1)
-          *VR-value* (make-array renamer:*VR-name* :element-type 'algebraic-expr :initial-element (make-unknown))
+          *VR-value* (make-array renamer:*VR-name* :element-type 'algebraic-expr :initial-contents (loop for i from 0 to (1- renamer:*VR-name*) collect (make-variable i)))
           *edge-count* 0
           *last-output* nil
           *last-store* nil
@@ -152,7 +152,7 @@
                        (instruction (node-inst node))
                        (virt (ir::virtual (ir::r2 instruction)))
                        (oval (aref *VR-value* virt)))
-                  (when (or (unknown oval)
+                  (when (or (not (is-const oval))
                             (alg-eq? val oval))
                     i))
      while (null best)
@@ -205,9 +205,9 @@
                        (:|sub| (sub (aref *VR-value* r1)
                                     (aref *VR-value* r2)))
                        ;; Fix unknowns later
-                       (:|lshift| (make-unknown))
-                       (:|rshift| (make-unknown))
-                       (t (make-unknown))))))))))
+                       (:|lshift| (make-variable def))
+                       (:|rshift| (make-variable def))
+                       (t (make-variable def))))))))))
 
     ;; Slight bug, maybe. If r1 and r2 are the same, then there are 2 edges :/
     (add-use-edge linum (ir::r2 instruction))
@@ -237,13 +237,14 @@
                  (if (not (is-const value))
                      ;; Just grab the last store
                      ;; This however causes a bug to where some stores don't have dependencies
-                     ;; To fix this, if a load is from an unknown address, link to all previous stores
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
                           do (setf (aref *memory-activity* i) -1))
-                       (add-edge-check linum (car *last-store*)))
-                     ;; (mapcar (lambda (x) (add-edge-check linum x))
-                     ;;         *last-store*)
+                       (add-edge-check linum (car *last-store*))
+                       ;; To fix this, if a load is from an unknown address, link to all previous stores
+                       ;; (mapcar (lambda (x) (add-edge-check linum x))
+                       ;;         *last-store*)
+                       )
                      ;; Find the store that uses the value of vr1
                      (progn
                        (when (is-const value)
