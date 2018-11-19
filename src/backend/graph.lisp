@@ -309,23 +309,24 @@
                          (add-edge-check linum v)))
                      ;; Find the store that uses the value of vr2
                      (progn
-                       (when-let* ((v (get-best-store value))
-                                   (inst (node-inst (aref *node-table* v)))
-                                   (store-val (aref *VR-value* (ir::virtual (ir::r2 inst))))
-                                   (mem-last-use (aref *memory-activity* (const value)))
-                                   (inst (node-inst (aref *node-table* mem-last-use)))
-                                   (reg-val (case (ir::category inst)
-                                              (:output (make-value (ir::constant inst)))
-                                              (:memop (aref *VR-value* (ir::virtual
-                                                                        (funcall (if (ir::store inst)
-                                                                                     #'ir::r2
-                                                                                     #'ir::r1)
-                                                                                 inst)))))))
+                       (when-let* ((v (get-best-store value)))
+                         (let* ((inst (node-inst (aref *node-table* v)))
+                                (store-val (aref *VR-value* (ir::virtual (ir::r2 inst))))
+                                (mem-last-use (aref *memory-activity* (const value)))
+                                (inst (node-inst (aref *node-table* mem-last-use)))
+                                (reg-val (case (ir::category inst)
+                                           (:output (make-value (ir::constant inst)))
+                                           (:memop (aref *VR-value* (ir::virtual
+                                                                     (funcall (if (ir::store inst)
+                                                                                  #'ir::r2
+                                                                                  #'ir::r1)
+                                                                              inst)))))))
                          ;; Also, if there has been no activity (load/output) with the given address
-                         ;; (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
-                         ;; (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
-                         ;; (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
-                         ;; (format t "Between ~a and ~a~%" v linum)
+                         (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
+                         (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
+                         (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
+                         (format t "Between ~a and ~a~%" v linum)
+                         (format t "Last-use: ~a~%" (ir::string-instruction inst #'ir::virtual))
                          (if (or (<= mem-last-use v)
                                  (null reg-val)
                                  (and (not (xor (is-const reg-val)
@@ -337,7 +338,7 @@
                        ;; Regardless of whether a previous store was found, mark dirty in memory
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))))
-                 )
+                 ))
                ;; (add-edge-check linum (car *last-store*))
              )
              (when *loads*
