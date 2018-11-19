@@ -281,6 +281,15 @@
                      (progn
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))
+                       (loop for i in *stores*
+                          while (let* ((node (aref *node-table* i))
+                                       (instruction (node-inst node))
+                                       (virt (ir::virtual (ir::r2 instruction)))
+                                       (oval (aref *VR-value* virt)))
+                                  (not (xor (is-const oval)
+                                            (is-const value)))
+                                  (alg-eq? value oval))
+                          do (add-edge-check linum i))
                        (when-let ((v (get-best-store value)))
                          (add-edge-check linum v))))
                  ))
