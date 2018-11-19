@@ -135,7 +135,7 @@
           *last-output* nil
           *last-store* nil
           *loads* '()
-          *memory* (make-array 32768 :element-type 'integer :initial-element -1)
+          *memory* (make-hash-table)
           *memory-activity* (make-array 32768 :element-type 'fixnum :initial-element -1))))
 
 (defun get-edge-with-value (n list)
@@ -152,7 +152,8 @@
                        (instruction (node-inst node))
                        (virt (ir::virtual (ir::r2 instruction)))
                        (oval (aref *VR-value* virt)))
-                  (when (or (not (is-const oval))
+                  (when (or (xor (is-const oval)
+                                 (is-const val))
                             (alg-eq? val oval))
                     i))
      while (null best)
@@ -178,13 +179,15 @@
                (r3 (ir::virtual (ir::r3 instruction))))
           (cond ((ir::store instruction)
                  ;; For stores, set the memory to the value
-                 (when (is-const r2v)
-                   (setf (aref *memory* (const r2v))
-                         r1v)))
+                 (setf (gethash r2v *memory*)
+                       r1v))
                 ((not (ir::store instruction))
-                 (when (is-const r1v)
+                 ;; For loads
+                 ;;(format t "~a~%" r1v)
+                 ;;(format t "~a => ~a~%" (gethash r1v *memory*) r3)
+                 (when-let ((mem (gethash r1v *memory*)))
                    (setf (aref *VR-value* r3)
-                         (aref *memory* (const r1v)))))
+                         mem)))
                 )))
       (unless (= def -1)
         (setf (aref *VR-definst* def)
@@ -201,7 +204,8 @@
                        (:|add| (add (aref *VR-value* r1)
                                     (aref *VR-value* r2)))
                        (:|mult| (mult (aref *VR-value* r1)
-                                      (aref *VR-value* r2)))
+                                      (aref *VR-value* r2)
+                                      def))
                        (:|sub| (sub (aref *VR-value* r1)
                                     (aref *VR-value* r2)))
                        ;; Fix unknowns later
@@ -240,10 +244,17 @@
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
                           do (setf (aref *memory-activity* i) -1))
-                       (add-edge-check linum (car *last-store*))
+                       ;; (add-edge-check linum (get-best-store value))
                        ;; To fix this, if a load is from an unknown address, link to all previous stores
-                       ;; (mapcar (lambda (x) (add-edge-check linum x))
-                       ;;         *last-store*)
+                       (mapcar (lambda (x)
+                                 (let* ((node (aref *node-table* x))
+                                        (inst (node-inst node))
+                                        (dest (ir::virtual (ir::r2 inst)))
+                                        (ov (aref *VR-value* dest)))
+                                   (when (or (is-const ov)
+                                             (alg-eq? ov value))
+                                     (add-edge-check linum x))))
+                               *last-store*)
                        )
                      ;; Find the store that uses the value of vr1
                      (progn
@@ -252,9 +263,6 @@
                        (when-let ((v (get-best-store value)))
                          (add-edge-check linum v))))
                  ))
-             (let ((v (ir::virtual (ir::r3 instruction))))
-               (setf (aref *VR-value* v)
-                     (make-variable v)))
              (push linum *loads*))
             ((eq cat :memop)
              ;; For stores
@@ -268,12 +276,12 @@
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
                           do (setf (aref *memory-activity* i) -1))
-                       (add-edge-check linum (car *last-store*)))
+                       (when-let ((v (get-best-store value)))
+                         (add-edge-check linum v)))
                      ;; Find the store that uses the value of vr2
                      (when-let ((v (get-best-store value)))
                        ;; Also, if there has been no activity (load/output) with the given address
-                       (if (and (is-const value)
-                                (/= (aref *memory-activity* (const value)) -1)
+                       (if (and (/= (aref *memory-activity* (const value)) -1)
                                 (<= (aref *memory-activity* (const value)) v))
                            (add-edge-check-with-weight linum v 4)
                            (add-edge-check linum v))
@@ -286,7 +294,13 @@
                (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
                  (if (not (is-const value))
                      (mapcar (lambda (x)
-                               (add-edge-check linum x))
+                               ;; Only add edges to loads that have same values
+                               (let* ((node (aref *node-table* x))
+                                      (inst (node-inst node))
+                                      (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
+                                 (when (or (is-const v)
+                                           (alg-eq? v value))
+                                   (add-edge-check linum x))))
                              *loads*)
                      (progn
                        ;;(format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
@@ -299,7 +313,8 @@
                                            (alg-eq? v value))
                                    (add-edge-check linum x))))
                              *loads*)))))
-             (push linum *last-store*))))))
+             (push linum *last-store*))))
+))
 
 (defun get-leaves ()
   (loop for i from 0 to (1- (array-dimension *node-table* 0))

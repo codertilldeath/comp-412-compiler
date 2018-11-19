@@ -4,7 +4,7 @@
                            (:print-function
                             (lambda (struct stream z)
                               (declare (ignore z))
-                              (format stream "Known? ~a, Vars: ~a, Const: ~a~%"
+                              (format stream "Known? ~a, Vars: ~a, Const: ~a"
                                       (if (unknown struct)
                                           "No"
                                           "Yes")
@@ -83,14 +83,11 @@
   (make-algebraic-expr))
 
 (defun add (alg1 alg2)
-  (if (or (unknown alg1)
-          (unknown alg2))
-      (make-unknown)
-      (make-algebraic-expr :unknown nil
-                           :vars (add-hash (vars alg1)
-                                           (vars alg2))
-                           :const (+ (const alg1)
-                                     (const alg2)))))
+  (make-algebraic-expr :unknown nil
+                       :vars (add-hash (vars alg1)
+                                       (vars alg2))
+                       :const (+ (const alg1)
+                                 (const alg2)))))
 
 (defun safe-mult (alg1 alg2)
   (make-algebraic-expr :unknown nil
@@ -99,12 +96,12 @@
                        :const (* (const alg1)
                                  (const alg2))))
 
-(defun mult (alg1 alg2)
+(defun mult (alg1 alg2 reg)
   (cond ((is-const alg1)
          (safe-mult alg1 alg2))
         ((is-const alg2)
          (safe-mult alg2 alg1))
-        (t (make-unknown))
+        (t (make-variable reg))
         ))
 
 (defun sub (alg1 alg2)
