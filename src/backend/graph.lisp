@@ -314,19 +314,20 @@
                                    (store-val (aref *VR-value* (ir::virtual (ir::r2 inst))))
                                    (mem-last-use (aref *memory-activity* (const value)))
                                    (inst (node-inst (aref *node-table* mem-last-use)))
-                                   (reg-val (if (eq (ir::category inst) :output)
-                                                (make-value (ir::constant inst))
-                                                (aref *VR-value* (ir::virtual
-                                                                  (funcall (if (ir::store inst)
-                                                                               #'ir::r2
-                                                                               #'ir::r1)
-                                                                           inst))))))
+                                   (reg-val (case (ir::category inst)
+                                              (:output (make-value (ir::constant inst)))
+                                              (:memop (aref *VR-value* (ir::virtual
+                                                                        (funcall (if (ir::store inst)
+                                                                                     #'ir::r2
+                                                                                     #'ir::r1)
+                                                                                 inst)))))))
                          ;; Also, if there has been no activity (load/output) with the given address
                          ;; (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
                          ;; (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
                          ;; (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
                          ;; (format t "Between ~a and ~a~%" v linum)
                          (if (or (<= mem-last-use v)
+                                 (null reg-val)
                                  (and (not (xor (is-const reg-val)
                                                 (is-const store-val)))
                                       (hash-eq? (vars store-val) (vars reg-val))
