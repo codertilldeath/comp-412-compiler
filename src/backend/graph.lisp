@@ -315,7 +315,7 @@
                                    (mem-last-use (aref *memory-activity* (const value)))
                                    (inst (node-inst (aref *node-table* mem-last-use)))
                                    (reg-val (if (eq (ir::category inst) :output)
-                                                (ir::constant inst)
+                                                (make-value (ir::constant inst))
                                                 (aref *VR-value* (ir::virtual
                                                                   (funcall (if (ir::store inst)
                                                                                #'ir::r2
