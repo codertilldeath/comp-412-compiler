@@ -25,20 +25,43 @@
   (node-priority (aref *node-table* i)))
 
 (defun get-schedules ()
-  (let (mem-inst mul-inst)
+  (let (mem-inst mem-prio
+        mul-inst mul-prio
+        reg1 reg1-prio
+        reg2 reg2-prio)
     (loop for i in *ready*
+       for node = (aref *node-table* i)
+       for inst = (node-inst node)
        do
-         (unless (eq :|mult| (ir::opcode (node-inst (aref *node-table* i))))
-           (when (or (null mem-inst)
-                     (< (get-cost mem-inst) (get-cost i)))
-             (setf mem-inst i))))
-    (loop for i in *ready*
-       do
-         (unless (or (eq :memop (ir::category (node-inst (aref *node-table* i))))
-                     (and mem-inst (= i mem-inst)))
-           (when (or (null mul-inst)
-                     (< (get-cost mul-inst) (get-cost i)))
-             (setf mul-inst i))))
+         (cond ((eq (ir::opcode inst) :|mult|)
+                (when (or (null mul-inst)
+                          (< mul-prio (node-priority node)))
+                  (setf mul-inst i)
+                  (setf mul-prio (node-priority node))))
+               ((eq (ir::category inst) :memop)
+                (when (or (null mem-inst)
+                          (< mem-prio (node-priority node)))
+                  (setf mem-inst i)
+                  (setf mem-prio (node-priority node))))
+               (t (when (or (null reg1)
+                            (< reg1-prio (node-priority node)))
+                    (setf reg2 reg1)
+                    (setf reg2-prio reg1-prio)
+                    (setf reg1 i)
+                    (setf reg1-prio (node-priority node))))))
+    (if (and (null mem-inst)
+             (null mul-inst))
+        (setf mul-inst reg1
+              mem-inst reg2)
+        (progn
+          (cond ((null mul-inst) (setf mul-inst reg1))
+                ((null mem-inst) (setf mem-inst reg1))
+                ((and (< mul-prio reg1-prio)
+                      (< mul-prio mem-prio))
+                 (setf mul-inst reg1))
+                ((and (< mem-prio reg1-prio)
+                      (< mem-prio mul-prio))
+                 (setf mem-inst reg1)))))
     (setf *ready* (remove mul-inst (remove mem-inst *ready*)))
     (cons mem-inst mul-inst)))
 
