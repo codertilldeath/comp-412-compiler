@@ -224,8 +224,18 @@
              ;; For outputs
              ;; Rely on the last store, but only if it stores to the address
              (when *last-store*
-               (when-let ((v (get-best-store (make-value (ir::constant instruction)))))
-                 (add-edge-check linum v)))
+               ;; (when-let ((v (get-best-store (make-value (ir::constant instruction)))))
+               ;;   (add-edge-check linum v))
+               (mapcar (lambda (x)
+                         (let* ((node (aref *node-table* x))
+                                (inst (node-inst node))
+                                (dest (ir::virtual (ir::r2 inst)))
+                                (ov (aref *VR-value* dest)))
+                           (when (or (not (is-const ov))
+                                     (alg-eq? ov (make-value (ir::constant instruction))))
+                             (add-edge-check linum x))))
+                       *last-store*)
+               )
              (setf (aref *memory-activity* (ir::constant instruction)) linum)
              ;; Required edge for serialized output
              (when *last-output*
