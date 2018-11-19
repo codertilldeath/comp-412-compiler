@@ -159,6 +159,16 @@
      while (null best)
      finally (return best)))
 
+(defun get-best-output (val)
+  (loop for i in *last-output*
+     for best = (let* ((node (aref *node-table* i))
+                       (instruction (node-inst node))
+                       (const (ir::constant instruction)))
+                  (when (= val const)
+                    i))
+     while (null best)
+     finally (return best)))
+
 (defparameter *debug-inst* nil)
 
 (defun handle-instruction (node linum)
@@ -278,7 +288,15 @@
             ((eq cat :memop)
              ;; For stores
              (when *last-output*
-               (add-edge-check linum (car *last-output*)))
+               (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+                 ;; If we don't know the value of vr2 of the store
+                 (if (not (is-const value))
+                     ;; Just grab the last output
+                     (add-edge-check linum (car *last-output*))
+                     ;; Otherwise, link to the previous output that used our address 
+                     (when-let ((v (get-best-output (const value))))
+                       (add-edge-check linum v)))
+                 ))
              (when *last-store*
                (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
                  ;; If we don't know the value of vr2 of the store
@@ -417,7 +435,7 @@
 
 (defun output-graph-nodes (stream)
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
-     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a~%Value: \"];~%" i (1+ i)
+     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a\"];~%" i (1+ i)
                 (ir::string-instruction (node-inst (aref *node-table* i))
                                         #'ir::virtual)
                 (node-priority (aref *node-table* i)))))

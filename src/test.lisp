@@ -2,7 +2,7 @@
 
 (progn
   (global:compile-start)
-  (let* ((fname "../../test/lab3_report/report16.i")
+  (let* ((fname "../../test/all_tests/wcr1.i")
          (ir (parser:parse-file fname)))
     (renamer:rename-registers ir)
     ;;(ir::output-ir ir #'ir::virtual)
@@ -35,10 +35,10 @@
 
 (require 'sb-sprof)
 
-(let ((ir (parser:parse-file "../../../../students/lab2/timing/T128k.i")))
-  (time (allocator:allocate-registers ir 5))
+(let ((ir (parser:parse-file "../../../../../students/lab3/timer/T128k.i")))
+  (renamer:rename-registers ir)
   (sb-sprof:with-profiling (:report :graph)
-    (allocator:allocate-registers ir 5))
+    (scheduler:schedule ir))
   nil)
 
 (sb-sprof:with-profiling (:report :flat)
