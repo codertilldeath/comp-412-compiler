@@ -263,7 +263,7 @@
                      ;; This however causes a bug to where some stores don't have dependencies
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
-                          do (setf (aref *memory-activity* i) -1))
+                          do (setf (aref *memory-activity* i) linum))
                        ;; (add-edge-check linum (get-best-store value))
                        ;; To fix this, if a load is from an unknown address, link to all previous stores
                        (mapcar (lambda (x)
@@ -304,15 +304,33 @@
                      ;; Just grab the last store
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
-                          do (setf (aref *memory-activity* i) -1))
+                          do (setf (aref *memory-activity* i) linum))
                        (when-let ((v (get-best-store value)))
                          (add-edge-check linum v)))
                      ;; Find the store that uses the value of vr2
                      (progn
-                       (when-let ((v (get-best-store value)))
+                       (when-let* ((v (get-best-store value))
+                                   (inst (node-inst (aref *node-table* v)))
+                                   (store-val (aref *VR-value* (ir::virtual (ir::r2 inst))))
+                                   (mem-last-use (aref *memory-activity* (const value)))
+                                   (inst (node-inst (aref *node-table* mem-last-use)))
+                                   (reg-val (if (eq (ir::category inst) :output)
+                                                (ir::constant inst)
+                                                (aref *VR-value* (ir::virtual
+                                                                  (funcall (if (ir::store inst)
+                                                                               #'ir::r2
+                                                                               #'ir::r1)
+                                                                           inst))))))
                          ;; Also, if there has been no activity (load/output) with the given address
-                         (if (and (/= (aref *memory-activity* (const value)) -1)
-                                  (<= (aref *memory-activity* (const value)) v))
+                         (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
+                         (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
+                         (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
+                         (format t "Between ~a and ~a~%" v linum)
+                         (if (or (<= mem-last-use v)
+                                 (and (not (xor (is-const reg-val)
+                                                (is-const store-val)))
+                                      (hash-eq? (vars store-val) (vars reg-val))
+                                      (not (alg-eq? store-val reg-val))))
                              (add-edge-check-with-weight linum v 4)
                              (add-edge-check linum v)))
                        ;; Regardless of whether a previous store was found, mark dirty in memory
