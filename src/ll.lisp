@@ -19,8 +19,7 @@
 (defstruct (ll-node :conc-name
                     (:print-function
                      (lambda (struct stream z)
-                       ;; VERY COUPLED
-                       (format t "~a~%" (ir::string-instruction (data struct) #'ir::virtual)))))
+                       (print (data struct)))))
   data prev next)
 
 (defun to-list (ll)
