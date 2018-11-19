@@ -281,7 +281,7 @@
                      (progn
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))
-                       (loop for i in *stores*
+                       (loop for i in *last-store*
                           while (let* ((node (aref *node-table* i))
                                        (instruction (node-inst node))
                                        (virt (ir::virtual (ir::r2 instruction)))
