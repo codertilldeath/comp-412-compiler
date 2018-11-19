@@ -57,6 +57,11 @@
           (when reg1
             (cond ((null mul-inst) (setf mul-inst reg1))
                   ((null mem-inst) (setf mem-inst reg1))
+                  ((and reg2
+                        (< mul-prio reg2-prio)
+                        (< mem-prio reg2-prio))
+                   (setf mul-inst reg1
+                         mem-inst reg2))
                   ((and (< mul-prio reg1-prio)
                         (< mul-prio mem-prio))
                    (setf mul-inst reg1))
