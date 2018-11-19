@@ -305,8 +305,11 @@
                      (progn
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
                           do (setf (aref *memory-activity* i) linum))
-                       (when-let ((v (get-best-store value)))
-                         (add-edge-check linum v)))
+                       (when-let* ((v (get-best-store value)))
+                         (if (and (or (null *last-output*) (< (car *last-output*) v))
+                                  (or (null *loads*) (< (car *loads*) v)))
+                          (add-edge-check-with-weight linum v 4)
+                          (add-edge-check linum v))))
                      ;; Find the store that uses the value of vr2
                      (progn
                        (when-let* ((v (get-best-store value)))
@@ -322,11 +325,11 @@
                                                                                   #'ir::r1)
                                                                               inst)))))))
                          ;; Also, if there has been no activity (load/output) with the given address
-                         ;; (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
-                         ;; (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
-                         ;; (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
-                         ;; (format t "Between ~a and ~a~%" v linum)
-                         ;; (format t "Last-use: ~a~%" (ir::string-instruction inst #'ir::virtual))
+                         (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
+                         (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
+                         (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
+                         (format t "Between ~a and ~a~%" v linum)
+                         (format t "Last-use: ~a~%" (ir::string-instruction inst #'ir::virtual))
                          (if (or (<= mem-last-use v)
                                  (null reg-val)
                                  (and (not (xor (is-const reg-val)

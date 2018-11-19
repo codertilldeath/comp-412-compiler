@@ -2,7 +2,7 @@
 
 (progn
   (global:compile-start)
-  (let* ((fname "../../test/lab3_report/report13.i")
+  (let* ((fname "../../test/all_tests/s61_test3.i")
          (ir (parser:parse-file fname)))
     (renamer:rename-registers ir)
     ;;(ir::output-ir ir #'ir::virtual)
