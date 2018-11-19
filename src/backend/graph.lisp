@@ -262,6 +262,7 @@
                                         (dest (ir::virtual (ir::r2 inst)))
                                         (ov (aref *VR-value* dest)))
                                    (when (or (is-const ov)
+                                             (not (hash-eq? (vars value) (vars ov)))
                                              (alg-eq? ov value))
                                      (add-edge-check linum x))))
                                *last-store*)
@@ -416,7 +417,7 @@
 
 (defun output-graph-nodes (stream)
   (loop for i from 0 to (1- (array-dimension *node-table* 0))
-     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a\"];~%" i (1+ i)
+     do (format stream "	~a [label=\"~a:  ~a~%priority: ~a~%Value: \"];~%" i (1+ i)
                 (ir::string-instruction (node-inst (aref *node-table* i))
                                         #'ir::virtual)
                 (node-priority (aref *node-table* i)))))

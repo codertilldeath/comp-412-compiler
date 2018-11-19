@@ -71,4 +71,7 @@
    [output 168; nop]
    [output 272; nop]
    #+END_SRC
-** TODO Fix report 20
+** DONE Fix report 20
+   CLOSED: [2018-11-19 Mon 11:47]
+   - State "DONE"       from "TODO"       [2018-11-19 Mon 11:47]
+** TODO When var becomes 0, remove it so it can become constant again
