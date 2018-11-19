@@ -87,7 +87,7 @@
                        :vars (add-hash (vars alg1)
                                        (vars alg2))
                        :const (+ (const alg1)
-                                 (const alg2)))))
+                                 (const alg2))))
 
 (defun safe-mult (alg1 alg2)
   (make-algebraic-expr :unknown nil
