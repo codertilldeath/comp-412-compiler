@@ -294,13 +294,13 @@
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))
 
-                       (loop for i in *last-store*
-                          for inst = (node-inst (aref *node-table* i))
-                          do (when (strictly-not-equal value (aref *VR-value* (ir::virtual (ir::r2 inst))))
-                                 (add-edge-check linum i))
-                          while (let* ((virt (ir::virtual (ir::r2 inst)))
-                                       (oval (aref *VR-value* virt)))
-                                  (not (alg-eq? value oval))))
+                       ;; (loop for i in *last-store*
+                       ;;    for inst = (node-inst (aref *node-table* i))
+                       ;;    do (when (strictly-not-equal value (aref *VR-value* (ir::virtual (ir::r2 inst))))
+                       ;;           (add-edge-check linum i))
+                       ;;    while (let* ((virt (ir::virtual (ir::r2 inst)))
+                       ;;                 (oval (aref *VR-value* virt)))
+                       ;;            (not (alg-eq? value oval))))
                        (when-let ((v (get-best-store value)))
                          (add-edge-check linum v))))
                  ))
