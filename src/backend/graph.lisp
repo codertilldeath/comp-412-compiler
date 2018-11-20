@@ -152,9 +152,7 @@
                        (instruction (node-inst node))
                        (virt (ir::virtual (ir::r2 instruction)))
                        (oval (aref *VR-value* virt)))
-                  (when (or (xor (is-const oval)
-                                 (is-const val))
-                            (alg-eq? val oval))
+                  (when (could-be-equal val oval)
                     i))
      while (null best)
      finally (return best)))
@@ -170,18 +168,6 @@
      finally (return best)))
 
 (defparameter *debug-inst* nil)
-
-(defun strictly-not-equal (alg1 alg2)
-  (and (not (xor (is-const alg1)
-                 (is-const alg2)))
-       (or (and (is-const alg1)
-                (/= (const alg1)
-                    (const alg2)))
-           (and (not (is-const alg1))
-                (/= (const alg1)
-                    (const alg2))
-                (hash-eq? (vars alg1)
-                          (vars alg2))))))
 
 (defun handle-instruction (node linum)
   (let ((instruction (ll::data node)))
@@ -253,8 +239,7 @@
                                 (inst (node-inst node))
                                 (dest (ir::virtual (ir::r2 inst)))
                                 (ov (aref *VR-value* dest)))
-                           (when (or (not (is-const ov))
-                                     (alg-eq? ov (make-value (ir::constant instruction))))
+                           (when (could-be-equal ov (make-value (ir::constant instruction)))
                              (add-edge-check linum x))))
                        *last-store*)
                )
@@ -307,8 +292,8 @@
              (push linum *loads*))
             ((eq cat :memop)
              ;; For stores
-             (when *last-output*
-               (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+             (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+               (when *last-output*
                  ;; If we don't know the value of vr2 of the store
                  (if (not (is-const value))
                      ;; Just grab the last output
@@ -316,9 +301,8 @@
                      ;; Otherwise, link to the previous output that used our address 
                      (when-let ((v (get-best-output (const value))))
                        (add-edge-check linum v)))
-                 ))
-             (when *last-store*
-               (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
+                 )
+               (when *last-store*
                  ;; If we don't know the value of vr2 of the store
                  (if (not (is-const value))
                      ;; Just grab the last store
@@ -361,24 +345,23 @@
                        ;; Regardless of whether a previous store was found, mark dirty in memory
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))))
-                 ))
+                 )
                ;; (add-edge-check linum (car *last-store*))
              )
              (when *loads*
-               (let ((value (aref *VR-value* (ir::virtual (ir::r2 instruction)))))
-                 (if (not (is-const value))
+               (if (not (is-const value))
+                   (mapcar (lambda (x)
+                             ;; Only add edges to loads that have same values
+                             (let* ((node (aref *node-table* x))
+                                    (inst (node-inst node))
+                                    (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
+                               (when (or (is-const v)
+                                         (alg-eq? v value))
+                                 (add-edge-check linum x))))
+                           *loads*)
+                   (progn
+                     ;;(format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
                      (mapcar (lambda (x)
-                               ;; Only add edges to loads that have same values
-                               (let* ((node (aref *node-table* x))
-                                      (inst (node-inst node))
-                                      (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
-                                 (when (or (is-const v)
-                                           (alg-eq? v value))
-                                   (add-edge-check linum x))))
-                             *loads*)
-                     (progn
-                       ;;(format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
-                       (mapcar (lambda (x)
                                (let* ((node (aref *node-table* x))
                                       (inst (node-inst node))
                                       (v (aref *VR-value* (ir::virtual (ir::r1 inst)))))
