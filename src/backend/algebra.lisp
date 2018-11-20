@@ -118,6 +118,12 @@
        (= (const alg2) (const alg1))
        (hash-eq? (vars alg1) (vars alg2))))
 
+(defun could-be-equal (alg1 alg2)
+  (or (xor (is-const alg1)
+           (is-const alg2))
+      (alg-eq? alg1 alg2)))
+
+
 (let* ((alg1 (make-value 3))
        (alg2 (make-variable 19))
        (alg3 (add alg1 alg2))
@@ -135,8 +141,3 @@
   (print alg35)
   (print (could-be-equal alg6 alg35))
   (print alg7))
-
-(defun could-be-equal (alg1 alg2)
-  (or (xor (is-const alg1)
-           (is-const alg2))
-      (alg-eq? alg1 alg2)))
