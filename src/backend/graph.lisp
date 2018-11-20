@@ -147,15 +147,15 @@
      finally (return num)))
 
 (defun get-best-store (val)
-  (format t "~a~%" (mapcar (lambda (x)
-                             (ir::virtual (ir::r2 (node-inst (aref *node-table* x)))))
-                           *last-store*))
+  ;; (format t "~a~%" (mapcar (lambda (x)
+  ;;                            (ir::virtual (ir::r2 (node-inst (aref *node-table* x)))))
+  ;;                          *last-store*))
   (loop for i in *last-store*
      for best = (let* ((node (aref *node-table* i))
                        (instruction (node-inst node))
                        (virt (ir::virtual (ir::r2 instruction)))
                        (oval (aref *VR-value* virt)))
-                  (format t "~a =? ~a~%" val oval)
+                  ;; (format t "~a =? ~a~%" val oval)
                   (when (could-be-equal val oval)
                     i))
      while (null best)
@@ -311,7 +311,6 @@
                  (if (not (is-const value))
                      ;; Just grab the last store
                      (progn
-                       (format t "Begin: ~a~%" (ir::string-instruction instruction #'ir::virtual))
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
                           do (setf (aref *memory-activity* i) linum))
                        (when-let* ((v (get-best-store value)))
