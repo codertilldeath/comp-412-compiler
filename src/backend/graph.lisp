@@ -171,6 +171,18 @@
 
 (defparameter *debug-inst* nil)
 
+(defun strictly-not-equal (alg1 alg2)
+  (and (not (xor (is-const alg1)
+                 (is-const alg2)))
+       (or (and (is-const alg1)
+                (/= (const alg1)
+                    (const alg2)))
+           (and (not (is-const alg1))
+                (/= (const alg1)
+                    (const alg2))
+                (hash-eq? (vars alg1)
+                          (vars alg2))))))
+
 (defun handle-instruction (node linum)
   (let ((instruction (ll::data node)))
     ;; Make a node
@@ -283,10 +295,10 @@
                          (setf (aref *memory-activity* (const value)) linum))
 
                        (loop for i in *last-store*
-                          do (add-edge-check linum i)
-                          while (let* ((node (aref *node-table* i))
-                                       (instruction (node-inst node))
-                                       (virt (ir::virtual (ir::r2 instruction)))
+                          for inst = (node-inst (aref *node-table* i))
+                          do (when (strictly-not-equal value (aref *VR-value* (ir::virtual (ir::r2 inst))))
+                                 (add-edge-check linum i))
+                          while (let* ((virt (ir::virtual (ir::r2 inst)))
                                        (oval (aref *VR-value* virt)))
                                   (not (alg-eq? value oval))))
                        (when-let ((v (get-best-store value)))
