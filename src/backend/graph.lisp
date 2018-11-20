@@ -147,11 +147,15 @@
      finally (return num)))
 
 (defun get-best-store (val)
+  (format t "~a~%" (mapcar (lambda (x)
+                             (ir::virtual (ir::r2 (node-inst (aref *node-table* x)))))
+                           *last-store*))
   (loop for i in *last-store*
      for best = (let* ((node (aref *node-table* i))
                        (instruction (node-inst node))
                        (virt (ir::virtual (ir::r2 instruction)))
                        (oval (aref *VR-value* virt)))
+                  (format t "~a =? ~a~%" val oval)
                   (when (could-be-equal val oval)
                     i))
      while (null best)
@@ -279,16 +283,16 @@
                        (when (is-const value)
                          (setf (aref *memory-activity* (const value)) linum))
 
-                       ;; (loop for i in *last-store*
-                       ;;    for inst = (node-inst (aref *node-table* i))
-                       ;;    do (when (strictly-not-equal value (aref *VR-value* (ir::virtual (ir::r2 inst))))
-                       ;;           (add-edge-check linum i))
-                       ;;    while (let* ((virt (ir::virtual (ir::r2 inst)))
-                       ;;                 (oval (aref *VR-value* virt)))
-                       ;;            (not (alg-eq? value oval))))
-                       (when-let ((v (get-best-store value)))
-                         (add-edge-check linum v))))
-                 ))
+                       (loop for i in *last-store*
+                          for inst = (node-inst (aref *node-table* i))
+                          do (when (alg-eq? value (aref *VR-value* (ir::virtual (ir::r2 inst))))
+                                 (add-edge-check linum i))
+                          while (let* ((virt (ir::virtual (ir::r2 inst)))
+                                       (oval (aref *VR-value* virt)))
+                                  (not (alg-eq? value oval))))
+                       ;; (when-let ((v (get-best-store value)))
+                       ;;   (add-edge-check linum v))
+                       ))))
              (push linum *loads*))
             ((eq cat :memop)
              ;; For stores
@@ -307,6 +311,7 @@
                  (if (not (is-const value))
                      ;; Just grab the last store
                      (progn
+                       (format t "Begin: ~a~%" (ir::string-instruction instruction #'ir::virtual))
                        (loop for i from 0 to (1- (array-dimension *memory-activity* 0))
                           do (setf (aref *memory-activity* i) linum))
                        (when-let* ((v (get-best-store value)))
@@ -329,7 +334,7 @@
                                                                                   #'ir::r1)
                                                                               inst)))))))
                          ;; Also, if there has been no activity (load/output) with the given address
-                         ;; (format t "~a~%" (ir::string-instruction instruction #'ir::virtual))
+                           ;; (format t "Begin: ~a~%" (ir::string-instruction instruction #'ir::virtual))
                          ;; (format t "~a~%" (ir::string-instruction (node-inst (aref *node-table* v)) #'ir::virtual))
                          ;; (format t "Last use for ~a: ~a~%" (const value) (aref *memory-activity* (const value)))
                          ;; (format t "Between ~a and ~a~%" v linum)
