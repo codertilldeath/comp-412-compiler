@@ -32,8 +32,7 @@ $(BUILDDIR)/debug: $(LIBS)
 
 # Remove binaries and fasl compiled files
 clean:
-	rm -f $(BUILDDIR)/412fealloc
-	rm -f $(BUILDDIR)/debug
+	rm -f scheduler
 	find . -name "*.fasl" -type f -delete
 
 # Remove everything, including libraries

@@ -3,7 +3,7 @@
 (asdf:defsystem :412fe-superspeed
   :serial t
   :build-operation "program-op"
-  :build-pathname "../build/412fealloc"
+  :build-pathname "../scheduler"
   :entry-point "412fe:entry"
   :depends-on ("alexandria")
   :around-compile (lambda (next)
